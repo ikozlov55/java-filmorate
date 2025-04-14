@@ -67,7 +67,7 @@ public class FilmControllerTest {
     }
 
     @Test
-    void idMustExistsOnFilmUpdate() throws Exception {
+    void idMustExistOnFilmUpdate() throws Exception {
         Film film = new FilmBuilder().id(99).build();
 
         update(film).andExpect(status().isNotFound())

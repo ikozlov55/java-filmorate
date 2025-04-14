@@ -15,6 +15,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
+    private static int nextEntityId = 1;
     private final Map<Integer, Film> films = new HashMap<>();
 
     @GetMapping
@@ -25,8 +26,9 @@ public class FilmController {
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
         log.info("Film create request received: {}", film);
-        film.setId(films.size() + 1);
+        film.setId(nextEntityId);
         films.put(film.getId(), film);
+        nextEntityId++;
         log.info("Film created successfully: {}", film);
         return film;
     }
@@ -45,18 +47,10 @@ public class FilmController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, reason);
         }
         Film oldFilm = films.get(film.getId());
-        if (film.getName() != null) {
-            oldFilm.setName(film.getName());
-        }
-        if (film.getDescription() != null) {
-            oldFilm.setDescription(film.getDescription());
-        }
-        if (film.getReleaseDate() != null) {
-            oldFilm.setReleaseDate(film.getReleaseDate());
-        }
-        if (film.getDuration() != null) {
-            oldFilm.setDuration(film.getDuration());
-        }
+        oldFilm.setName(film.getName());
+        oldFilm.setDescription(film.getDescription());
+        oldFilm.setReleaseDate(film.getReleaseDate());
+        oldFilm.setDuration(film.getDuration());
         log.info("Film updated successfully: {}", oldFilm);
         return oldFilm;
     }

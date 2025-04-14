@@ -15,6 +15,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+    private static int nextEntityId = 1;
     private final Map<Integer, User> users = new HashMap<>();
 
     @GetMapping
@@ -25,11 +26,12 @@ public class UserController {
     @PostMapping
     public User create(@Valid @RequestBody User user) {
         log.info("User create request received: {}", user);
-        user.setId(users.size() + 1);
+        user.setId(nextEntityId);
         if (user.getName() == null) {
             user.setName(user.getLogin());
         }
         users.put(user.getId(), user);
+        nextEntityId++;
         log.info("User created successfully: {}", user);
         return user;
     }
@@ -48,18 +50,10 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, reason);
         }
         User oldUser = users.get(user.getId());
-        if (user.getEmail() != null) {
-            oldUser.setEmail(user.getEmail());
-        }
-        if (user.getLogin() != null) {
-            oldUser.setLogin(user.getLogin());
-        }
-        if (user.getName() != null) {
-            oldUser.setName(user.getName());
-        }
-        if (user.getBirthday() != null) {
-            oldUser.setBirthday(user.getBirthday());
-        }
+        oldUser.setEmail(user.getEmail());
+        oldUser.setLogin(user.getLogin());
+        oldUser.setName(user.getName() != null ? user.getName() : user.getLogin());
+        oldUser.setBirthday(user.getBirthday());
         log.info("User updated successfully: {}", user);
         return oldUser;
     }

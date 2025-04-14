@@ -70,6 +70,24 @@ public class UserControllerTest {
     }
 
     @Test
+    void userUpdatedWithoutNameHasLoginInstead() throws Exception {
+        User user = new UserBuilder().build();
+        create(user).andExpect(status().isOk());
+        user.setId(1);
+        user.setEmail("new@mail.ru");
+        user.setLogin("newLogin");
+        user.setName(null);
+        user.setBirthday(LocalDate.of(2000, 1, 1));
+
+        update(user).andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.email").value(user.getEmail()))
+                .andExpect(jsonPath("$.login").value(user.getLogin()))
+                .andExpect(jsonPath("$.name").value(user.getLogin()))
+                .andExpect(jsonPath("$.birthday").value(user.getBirthday().toString()));
+    }
+
+    @Test
     void idIsRequiredOnUserUpdate() throws Exception {
         User user = new UserBuilder().build();
 
@@ -78,7 +96,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void idMustExistsOnUserUpdate() throws Exception {
+    void idMustExistOnUserUpdate() throws Exception {
         User user = new UserBuilder().id(99).build();
 
         update(user).andExpect(status().isNotFound())
