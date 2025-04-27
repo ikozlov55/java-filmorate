@@ -1,57 +1,54 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping("/films")
+@RequiredArgsConstructor
 public class FilmController {
-    private static int nextEntityId = 1;
-    private final Map<Integer, Film> films = new HashMap<>();
+    private final FilmService filmService;
 
     @GetMapping
     public Collection<Film> getAll() {
-        return films.values();
+        return filmService.getAll();
+    }
+
+    @GetMapping("/{filmId}")
+    public Film getById(@PathVariable int filmId) {
+        return filmService.getById(filmId);
     }
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
-        log.info("Film create request received: {}", film);
-        film.setId(nextEntityId);
-        films.put(film.getId(), film);
-        nextEntityId++;
-        log.info("Film created successfully: {}", film);
-        return film;
+        return filmService.create(film);
     }
 
     @PutMapping
     public Film update(@Valid @RequestBody Film film) {
-        log.info("Film update request received {}", film);
-        if (film.getId() == null) {
-            String reason = "id field is required";
-            log.warn("Validation failed: {}", reason);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, reason);
-        }
-        if (!films.containsKey(film.getId())) {
-            String reason = String.format("film with id %d not found", film.getId());
-            log.warn("Validation failed: {}", reason);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, reason);
-        }
-        Film oldFilm = films.get(film.getId());
-        oldFilm.setName(film.getName());
-        oldFilm.setDescription(film.getDescription());
-        oldFilm.setReleaseDate(film.getReleaseDate());
-        oldFilm.setDuration(film.getDuration());
-        log.info("Film updated successfully: {}", oldFilm);
-        return oldFilm;
+        return filmService.update(film);
+    }
+
+    @PutMapping("/{filmId}/like/{userId}")
+    public void addLike(@PathVariable int filmId, @PathVariable int userId) {
+        filmService.addLike(filmId, userId);
+    }
+
+    @DeleteMapping("/{filmId}/like/{userId}")
+    public void deleteLike(@PathVariable int filmId, @PathVariable int userId) {
+        filmService.deleteLike(filmId, userId);
+    }
+
+    @GetMapping("/popular")
+    public Collection<Film> filmsPopular(@RequestParam(required = false) Integer count) {
+        return filmService.filmsPopular(count);
     }
 }
+

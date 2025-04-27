@@ -22,4 +22,5 @@ public class Film {
     @NotNull
     @Positive
     private Integer duration;
+    private Integer likes = 0;
 }
