@@ -36,12 +36,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film update(Film film) {
         checkEntityExists(film.getId());
-        Film oldFilm = films.get(film.getId());
-        oldFilm.setName(film.getName());
-        oldFilm.setDescription(film.getDescription());
-        oldFilm.setReleaseDate(film.getReleaseDate());
-        oldFilm.setDuration(film.getDuration());
-        return oldFilm;
+        film.setLikes(films.get(film.getId()).getLikes());
+        films.put(film.getId(), film);
+        return film;
     }
 
     @Override

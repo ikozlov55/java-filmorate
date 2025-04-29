@@ -14,6 +14,7 @@ import java.util.Collection;
 @Service
 @RequiredArgsConstructor
 public class FilmService {
+    private static final int DEFAULT_FILMS_POPULAR_COUNT = 10;
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
 
@@ -63,6 +64,7 @@ public class FilmService {
     }
 
     public Collection<Film> filmsPopular(Integer count) {
-        return filmStorage.filmsPopular(count != null ? count : 10);
+        count = count != null ? count : DEFAULT_FILMS_POPULAR_COUNT;
+        return filmStorage.filmsPopular(count);
     }
 }

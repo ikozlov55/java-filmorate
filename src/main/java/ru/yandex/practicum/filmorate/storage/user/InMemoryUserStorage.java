@@ -36,12 +36,8 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User update(User user) {
         checkEntityExists(user.getId());
-        User oldUser = users.get(user.getId());
-        oldUser.setEmail(user.getEmail());
-        oldUser.setLogin(user.getLogin());
-        oldUser.setName(user.getName());
-        oldUser.setBirthday(user.getBirthday());
-        return oldUser;
+        users.put(user.getId(), user);
+        return user;
     }
 
     @Override
@@ -79,21 +75,15 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public Collection<User> getFriends(int userId) {
         checkEntityExists(userId);
-        if (!usersFriends.containsKey(userId)) {
-            return Set.of();
-        }
-        return usersFriends.get(userId).stream().map(this::getById).toList();
+        return usersFriends.getOrDefault(userId, Set.of()).stream().map(this::getById).toList();
     }
 
     @Override
     public Collection<User> getCommonFriends(int userId, int otherId) {
         checkEntityExists(userId);
         checkEntityExists(otherId);
-        if (!usersFriends.containsKey(userId) || !usersFriends.containsKey(otherId)) {
-            return Set.of();
-        }
-        Set<Integer> commonFriendsIds = usersFriends.get(userId);
-        commonFriendsIds.retainAll(usersFriends.get(otherId));
+        Set<Integer> commonFriendsIds = usersFriends.getOrDefault(userId, Set.of());
+        commonFriendsIds.retainAll(usersFriends.getOrDefault(otherId, Set.of()));
         return commonFriendsIds.stream().map(this::getById).toList();
     }
 

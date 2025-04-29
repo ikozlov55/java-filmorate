@@ -332,4 +332,11 @@ public class UserControllerTest {
         filmorateApi.getCommonFriends(999, userId).andExpect(status().isNotFound());
     }
 
+    @Test
+    void getFriendsIsEmptyWhenNoFriends() throws Exception {
+        int userId = filmorateApi.createAndGetId(new UserBuilder().build());
+
+        filmorateApi.getFriends(userId).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
 }

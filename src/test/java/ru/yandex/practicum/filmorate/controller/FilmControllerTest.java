@@ -66,6 +66,20 @@ public class FilmControllerTest {
     }
 
     @Test
+    void filmLikesCannotBeUpdated() throws Exception {
+        Film film = new FilmBuilder().build();
+        int filmId = filmorateApi.createAndGetId(film);
+        film.setId(filmId);
+        film.setName("New name");
+        film.setLikes(99);
+
+        filmorateApi.update(film).andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(filmId))
+                .andExpect(jsonPath("$.name").value(film.getName()))
+                .andExpect(jsonPath("$.likes").value(0));
+    }
+
+    @Test
     void idIsRequiredOnFilmUpdate() throws Exception {
         Film film = new FilmBuilder().build();
 
