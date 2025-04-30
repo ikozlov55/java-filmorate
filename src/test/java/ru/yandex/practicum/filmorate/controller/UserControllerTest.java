@@ -5,33 +5,36 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.testdata.FilmorateApi;
 import ru.yandex.practicum.filmorate.testdata.UserBuilder;
 
 import java.time.LocalDate;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.yandex.practicum.filmorate.testdata.Matchers.validationError;
 
-@WebMvcTest(UserController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
+@Import(FilmorateApi.class)
 public class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private FilmorateApi filmorateApi;
 
     @Test
     void userCreate() throws Exception {
         User user = new UserBuilder().build();
 
-        create(user).andExpect(status().isOk())
+        filmorateApi.create(user).andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.email").value(user.getEmail()))
                 .andExpect(jsonPath("$.login").value(user.getLogin()))
@@ -42,7 +45,7 @@ public class UserControllerTest {
     @Test
     void userCreatedWithoutNameHasLoginInstead() throws Exception {
         User user = new UserBuilder().name(null).build();
-        create(user).andExpect(status().isOk())
+        filmorateApi.create(user).andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.email").value(user.getEmail()))
                 .andExpect(jsonPath("$.login").value(user.getLogin()))
@@ -54,15 +57,15 @@ public class UserControllerTest {
     @Test
     void userUpdate() throws Exception {
         User user = new UserBuilder().build();
-        create(user).andExpect(status().isOk());
-        user.setId(1);
+        int userId = filmorateApi.createAndGetId(user);
+        user.setId(userId);
         user.setEmail("new@mail.ru");
         user.setLogin("newLogin");
         user.setName("New Name");
         user.setBirthday(LocalDate.of(2000, 1, 1));
 
-        update(user).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
+        filmorateApi.update(user).andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(userId))
                 .andExpect(jsonPath("$.email").value(user.getEmail()))
                 .andExpect(jsonPath("$.login").value(user.getLogin()))
                 .andExpect(jsonPath("$.name").value(user.getName()))
@@ -72,15 +75,15 @@ public class UserControllerTest {
     @Test
     void userUpdatedWithoutNameHasLoginInstead() throws Exception {
         User user = new UserBuilder().build();
-        create(user).andExpect(status().isOk());
-        user.setId(1);
+        int userId = filmorateApi.createAndGetId(user);
+        user.setId(userId);
         user.setEmail("new@mail.ru");
         user.setLogin("newLogin");
         user.setName(null);
         user.setBirthday(LocalDate.of(2000, 1, 1));
 
-        update(user).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
+        filmorateApi.update(user).andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(userId))
                 .andExpect(jsonPath("$.email").value(user.getEmail()))
                 .andExpect(jsonPath("$.login").value(user.getLogin()))
                 .andExpect(jsonPath("$.name").value(user.getLogin()))
@@ -91,23 +94,23 @@ public class UserControllerTest {
     void idIsRequiredOnUserUpdate() throws Exception {
         User user = new UserBuilder().build();
 
-        update(user).andExpect(status().isBadRequest())
-                .andExpect(status().reason("id field is required"));
+        filmorateApi.update(user).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.reason").value("id field is required"));
     }
 
     @Test
     void idMustExistOnUserUpdate() throws Exception {
         User user = new UserBuilder().id(99).build();
 
-        update(user).andExpect(status().isNotFound())
-                .andExpect(status().reason("user with id 99 not found"));
+        filmorateApi.update(user).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.reason").value("user with id 99 not found"));
     }
 
     @Test
     void emailIsRequired() throws Exception {
         User user = new UserBuilder().email(null).build();
 
-        create(user).andExpect(status().isBadRequest())
+        filmorateApi.create(user).andExpect(status().isBadRequest())
                 .andExpect(validationError("email", "must not be blank"));
     }
 
@@ -115,7 +118,7 @@ public class UserControllerTest {
     void emailCannotBeEmpty() throws Exception {
         User user = new UserBuilder().email("").build();
 
-        create(user).andExpect(status().isBadRequest())
+        filmorateApi.create(user).andExpect(status().isBadRequest())
                 .andExpect(validationError("email", "must not be blank"));
     }
 
@@ -125,7 +128,7 @@ public class UserControllerTest {
     void emailMustBeWellFormed(String email) throws Exception {
         User user = new UserBuilder().email(email).build();
 
-        create(user).andExpect(status().isBadRequest())
+        filmorateApi.create(user).andExpect(status().isBadRequest())
                 .andExpect(validationError("email", "must be a well-formed email address"));
     }
 
@@ -133,7 +136,7 @@ public class UserControllerTest {
     void loginIsRequired() throws Exception {
         User user = new UserBuilder().login(null).build();
 
-        create(user).andExpect(status().isBadRequest())
+        filmorateApi.create(user).andExpect(status().isBadRequest())
                 .andExpect(validationError("login", "must not be null"));
     }
 
@@ -141,7 +144,7 @@ public class UserControllerTest {
     void loginCannotBeEmpty() throws Exception {
         User user = new UserBuilder().login("").build();
 
-        create(user).andExpect(status().isBadRequest())
+        filmorateApi.create(user).andExpect(status().isBadRequest())
                 .andExpect(validationError("login", "must match \"\\S+\""));
     }
 
@@ -149,7 +152,7 @@ public class UserControllerTest {
     void loginCannotContainSpaces() throws Exception {
         User user = new UserBuilder().login("lo gin").build();
 
-        create(user).andExpect(status().isBadRequest())
+        filmorateApi.create(user).andExpect(status().isBadRequest())
                 .andExpect(validationError("login", "must match \"\\S+\""));
     }
 
@@ -157,7 +160,7 @@ public class UserControllerTest {
     void birthdayIsRequired() throws Exception {
         User user = new UserBuilder().birthday(null).build();
 
-        create(user).andExpect(status().isBadRequest())
+        filmorateApi.create(user).andExpect(status().isBadRequest())
                 .andExpect(validationError("birthday", "must not be null"));
     }
 
@@ -166,22 +169,174 @@ public class UserControllerTest {
     void birthdayMustBeInThePast() throws Exception {
         User user = new UserBuilder().birthday(LocalDate.now().plusYears(1)).build();
 
-        create(user).andExpect(status().isBadRequest())
+        filmorateApi.create(user).andExpect(status().isBadRequest())
                 .andExpect(validationError("birthday", "must be a past date"));
     }
 
+    @Test
+    void getUserById() throws Exception {
+        User user = new UserBuilder().build();
+        int userId = filmorateApi.createAndGetId(user);
 
-    ResultActions create(User user) throws Exception {
-        String body = objectMapper.writeValueAsString(user);
-        return mockMvc.perform(post("/users")
-                .content(body)
-                .contentType(MediaType.APPLICATION_JSON));
+        filmorateApi.getUserById(userId).andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(userId))
+                .andExpect(jsonPath("$.email").value(user.getEmail()))
+                .andExpect(jsonPath("$.login").value(user.getLogin()))
+                .andExpect(jsonPath("$.name").value(user.getName()))
+                .andExpect(jsonPath("$.birthday").value(user.getBirthday().toString()));
     }
 
-    ResultActions update(User user) throws Exception {
-        String body = objectMapper.writeValueAsString(user);
-        return mockMvc.perform(put("/users")
-                .content(body)
-                .contentType(MediaType.APPLICATION_JSON));
+    @Test
+    void idMustExistOnGetUserById() throws Exception {
+        filmorateApi.getUserById(999).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void addFriend() throws Exception {
+        int userId1 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int userId2 = filmorateApi.createAndGetId(new UserBuilder().build());
+
+        filmorateApi.addFriend(userId1, userId2).andExpect(status().isOk());
+        filmorateApi.getFriends(userId1).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$.[0].id").value(userId2));
+        filmorateApi.getFriends(userId2).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$.[0].id").value(userId1));
+    }
+
+    @Test
+    void repeatedAddFriendDoesNotDuplicate() throws Exception {
+        int userId1 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int userId2 = filmorateApi.createAndGetId(new UserBuilder().build());
+        filmorateApi.addFriend(userId1, userId2);
+        filmorateApi.addFriend(userId2, userId1);
+        filmorateApi.addFriend(userId1, userId2);
+
+        filmorateApi.getFriends(userId1).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$.[0].id").value(userId2));
+        filmorateApi.getFriends(userId2).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$.[0].id").value(userId1));
+    }
+
+    @Test
+    void userIdMustExistOnAddFriend() throws Exception {
+        int userId = filmorateApi.createAndGetId(new UserBuilder().build());
+
+        filmorateApi.addFriend(userId, 999).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void friendIdMustExistOnAddFriend() throws Exception {
+        int userId = filmorateApi.createAndGetId(new UserBuilder().build());
+
+        filmorateApi.addFriend(999, userId).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteFriend() throws Exception {
+        int userId1 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int userId2 = filmorateApi.createAndGetId(new UserBuilder().build());
+        filmorateApi.addFriend(userId1, userId2);
+
+        filmorateApi.deleteFriend(userId1, userId2).andExpect(status().isOk());
+        filmorateApi.getFriends(userId1).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+        filmorateApi.getFriends(userId2).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void deleteFriendWhenNotFriendsHasNoError() throws Exception {
+        int userId1 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int userId2 = filmorateApi.createAndGetId(new UserBuilder().build());
+
+        filmorateApi.deleteFriend(userId1, userId2).andExpect(status().isOk());
+    }
+
+    @Test
+    void userIdMustExistOnDeleteFriend() throws Exception {
+        int userId = filmorateApi.createAndGetId(new UserBuilder().build());
+
+        filmorateApi.deleteFriend(userId, 999).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void friendIdMustExistOnDeleteFriend() throws Exception {
+        int userId = filmorateApi.createAndGetId(new UserBuilder().build());
+
+        filmorateApi.deleteFriend(999, userId).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getCommonFriends() throws Exception {
+        int userId1 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int userId2 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int friendId1 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int friendId2 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int friendId3 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int friendId4 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int friendId5 = filmorateApi.createAndGetId(new UserBuilder().build());
+
+        filmorateApi.addFriend(userId1, friendId1);
+        filmorateApi.addFriend(userId1, friendId2);
+        filmorateApi.addFriend(userId1, friendId3);
+        filmorateApi.addFriend(userId1, friendId4);
+
+        filmorateApi.addFriend(userId2, friendId3);
+        filmorateApi.addFriend(userId2, friendId4);
+        filmorateApi.addFriend(userId2, friendId5);
+
+        filmorateApi.getCommonFriends(userId1, userId2).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$.[0].id").value(friendId3))
+                .andExpect(jsonPath("$.[1].id").value(friendId4));
+        filmorateApi.getCommonFriends(userId2, userId1).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$.[0].id").value(friendId3))
+                .andExpect(jsonPath("$.[1].id").value(friendId4));
+    }
+
+    @Test
+    void getCommonFriendsWhenEmpty() throws Exception {
+        int userId1 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int userId2 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int friendId1 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int friendId2 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int friendId3 = filmorateApi.createAndGetId(new UserBuilder().build());
+        int friendId4 = filmorateApi.createAndGetId(new UserBuilder().build());
+        filmorateApi.addFriend(userId1, friendId1);
+        filmorateApi.addFriend(userId1, friendId2);
+        filmorateApi.addFriend(userId2, friendId3);
+        filmorateApi.addFriend(userId2, friendId4);
+
+        filmorateApi.getCommonFriends(userId1, userId2).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+        filmorateApi.getCommonFriends(userId2, userId1).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void userIdMustExistOnGetCommonFriends() throws Exception {
+        int userId = filmorateApi.createAndGetId(new UserBuilder().build());
+
+        filmorateApi.getCommonFriends(userId, 999).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void otherIdMustExistOnGetCommonFriends() throws Exception {
+        int userId = filmorateApi.createAndGetId(new UserBuilder().build());
+
+        filmorateApi.getCommonFriends(999, userId).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getFriendsIsEmptyWhenNoFriends() throws Exception {
+        int userId = filmorateApi.createAndGetId(new UserBuilder().build());
+
+        filmorateApi.getFriends(userId).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
     }
 }
