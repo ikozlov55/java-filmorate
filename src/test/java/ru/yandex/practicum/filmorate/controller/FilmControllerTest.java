@@ -13,10 +13,14 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.testdata.FilmBuilder;
 import ru.yandex.practicum.filmorate.testdata.FilmorateApi;
 import ru.yandex.practicum.filmorate.testdata.UserBuilder;
+import ru.yandex.practicum.filmorate.validation.FilmRatingValidator;
 import ru.yandex.practicum.filmorate.validation.ReleaseDateValidator;
 
 import java.time.LocalDate;
+import java.util.Set;
 
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.yandex.practicum.filmorate.testdata.Matchers.validationError;
@@ -43,7 +47,12 @@ public class FilmControllerTest {
                 .andExpect(jsonPath("$.description").value(film.getDescription()))
                 .andExpect(jsonPath("$.releaseDate").value(film.getReleaseDate().toString()))
                 .andExpect(jsonPath("$.duration").value(film.getDuration()))
-                .andExpect(jsonPath("$.likes").value(0));
+                .andExpect(jsonPath("$.likes").value(0))
+                .andExpect(jsonPath("$.rating").value(film.getRating()))
+                .andExpect(jsonPath("$.genres").isArray())
+                .andExpect(jsonPath("$.genres", hasSize(film.getGenres().size())))
+                .andExpect(jsonPath("$.genres", hasItems(film.getGenres().toArray())));
+
     }
 
     @Test
@@ -55,6 +64,8 @@ public class FilmControllerTest {
         film.setDescription("New description");
         film.setReleaseDate(LocalDate.now());
         film.setDuration(60);
+        film.setRating("PG-13");
+        film.setGenres(Set.of("Боевик", "Триллер"));
 
         filmorateApi.update(film).andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(filmId))
@@ -62,7 +73,11 @@ public class FilmControllerTest {
                 .andExpect(jsonPath("$.description").value(film.getDescription()))
                 .andExpect(jsonPath("$.releaseDate").value(film.getReleaseDate().toString()))
                 .andExpect(jsonPath("$.duration").value(film.getDuration()))
-                .andExpect(jsonPath("$.likes").value(0));
+                .andExpect(jsonPath("$.likes").value(0))
+                .andExpect(jsonPath("$.rating").value(film.getRating()))
+                .andExpect(jsonPath("$.genres").isArray())
+                .andExpect(jsonPath("$.genres", hasSize(film.getGenres().size())))
+                .andExpect(jsonPath("$.genres", hasItems(film.getGenres().toArray())));
     }
 
     @Test
@@ -162,6 +177,23 @@ public class FilmControllerTest {
 
         filmorateApi.create(film).andExpect(status().isBadRequest())
                 .andExpect(validationError("duration", "must be greater than 0"));
+    }
+
+    @Test
+    void ratingIsRequired() throws Exception {
+        Film film = new FilmBuilder().rating(null).build();
+
+        filmorateApi.create(film).andExpect(status().isBadRequest())
+                .andExpect(validationError("rating", "film rating is required"));
+    }
+
+    @Test
+    void ratingMustBeOneOfAllowedValues() throws Exception {
+        Film film = new FilmBuilder().rating("ZZZ").build();
+
+        String message = "film rating must be one of values: " + FilmRatingValidator.RATING_NAMES;
+        filmorateApi.create(film).andExpect(status().isBadRequest())
+                .andExpect(validationError("rating", message));
     }
 
     @Test

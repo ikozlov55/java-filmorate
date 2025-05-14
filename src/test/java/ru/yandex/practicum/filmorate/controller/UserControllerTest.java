@@ -197,6 +197,7 @@ public class UserControllerTest {
         int userId2 = filmorateApi.createAndGetId(new UserBuilder().build());
 
         filmorateApi.addFriend(userId1, userId2).andExpect(status().isOk());
+        filmorateApi.addFriend(userId2, userId1).andExpect(status().isOk());
         filmorateApi.getFriends(userId1).andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$.[0].id").value(userId2));
@@ -212,6 +213,7 @@ public class UserControllerTest {
         filmorateApi.addFriend(userId1, userId2);
         filmorateApi.addFriend(userId2, userId1);
         filmorateApi.addFriend(userId1, userId2);
+        filmorateApi.addFriend(userId2, userId1);
 
         filmorateApi.getFriends(userId1).andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
@@ -240,6 +242,7 @@ public class UserControllerTest {
         int userId1 = filmorateApi.createAndGetId(new UserBuilder().build());
         int userId2 = filmorateApi.createAndGetId(new UserBuilder().build());
         filmorateApi.addFriend(userId1, userId2);
+        filmorateApi.addFriend(userId2, userId1);
 
         filmorateApi.deleteFriend(userId1, userId2).andExpect(status().isOk());
         filmorateApi.getFriends(userId1).andExpect(status().isOk())
@@ -281,13 +284,20 @@ public class UserControllerTest {
         int friendId5 = filmorateApi.createAndGetId(new UserBuilder().build());
 
         filmorateApi.addFriend(userId1, friendId1);
+        filmorateApi.addFriend(friendId1, userId1);
         filmorateApi.addFriend(userId1, friendId2);
+        filmorateApi.addFriend(friendId2, userId1);
         filmorateApi.addFriend(userId1, friendId3);
+        filmorateApi.addFriend(friendId3, userId1);
         filmorateApi.addFriend(userId1, friendId4);
+        filmorateApi.addFriend(friendId4, userId1);
 
         filmorateApi.addFriend(userId2, friendId3);
+        filmorateApi.addFriend(friendId3, userId2);
         filmorateApi.addFriend(userId2, friendId4);
+        filmorateApi.addFriend(friendId4, userId2);
         filmorateApi.addFriend(userId2, friendId5);
+        filmorateApi.addFriend(friendId5, userId2);
 
         filmorateApi.getCommonFriends(userId1, userId2).andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))

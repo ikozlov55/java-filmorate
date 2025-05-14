@@ -5,14 +5,23 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+enum FriendshipStatus {
+    APPROVED, UNAPPROVED
+}
 
 @Slf4j
 @Component
 public class InMemoryUserStorage implements UserStorage {
     private static int nextEntityId = 1;
     private final Map<Integer, User> users = new HashMap<>();
-    private final Map<Integer, Set<Integer>> usersFriends = new HashMap<>();
+    private final Map<Integer, Map<Integer, FriendshipStatus>> usersFriends = new HashMap<>();
+
 
     @Override
     public Collection<User> getAll() {
@@ -51,13 +60,19 @@ public class InMemoryUserStorage implements UserStorage {
         checkEntityExists(userId);
         checkEntityExists(friendId);
         if (!usersFriends.containsKey(userId)) {
-            usersFriends.put(userId, new HashSet<>());
+            usersFriends.put(userId, new HashMap<>());
         }
         if (!usersFriends.containsKey(friendId)) {
-            usersFriends.put(friendId, new HashSet<>());
+            usersFriends.put(friendId, new HashMap<>());
         }
-        usersFriends.get(userId).add(friendId);
-        usersFriends.get(friendId).add(userId);
+
+        if (usersFriends.get(friendId).containsKey(userId)) {
+            usersFriends.get(userId).put(friendId, FriendshipStatus.APPROVED);
+            usersFriends.get(friendId).put(userId, FriendshipStatus.APPROVED);
+        }
+        if (!usersFriends.get(userId).containsKey(friendId)) {
+            usersFriends.get(userId).put(friendId, FriendshipStatus.UNAPPROVED);
+        }
     }
 
     @Override
@@ -75,15 +90,26 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public Collection<User> getFriends(int userId) {
         checkEntityExists(userId);
-        return usersFriends.getOrDefault(userId, Set.of()).stream().map(this::getById).toList();
+        return usersFriends.getOrDefault(userId, Map.of())
+                .entrySet().stream()
+                .filter(e -> e.getValue() == FriendshipStatus.APPROVED)
+                .map(Map.Entry::getKey)
+                .map(this::getById).toList();
     }
 
     @Override
     public Collection<User> getCommonFriends(int userId, int otherId) {
         checkEntityExists(userId);
         checkEntityExists(otherId);
-        Set<Integer> commonFriendsIds = usersFriends.getOrDefault(userId, Set.of());
-        commonFriendsIds.retainAll(usersFriends.getOrDefault(otherId, Set.of()));
+        Set<Integer> commonFriendsIds = usersFriends.getOrDefault(userId, Map.of())
+                .entrySet().stream()
+                .filter(e -> e.getValue() == FriendshipStatus.APPROVED)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+        commonFriendsIds.retainAll(usersFriends.getOrDefault(otherId, Map.of()).entrySet().stream()
+                .filter(e -> e.getValue() == FriendshipStatus.APPROVED)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet()));
         return commonFriendsIds.stream().map(this::getById).toList();
     }
 
