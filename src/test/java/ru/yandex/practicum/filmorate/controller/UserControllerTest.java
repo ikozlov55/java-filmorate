@@ -1,34 +1,59 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.testdata.FilmorateApi;
 import ru.yandex.practicum.filmorate.testdata.UserBuilder;
 
 import java.time.LocalDate;
 
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.yandex.practicum.filmorate.testdata.Matchers.validationError;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@AutoConfigureTestDatabase
 @Import(FilmorateApi.class)
 public class UserControllerTest {
     @Autowired
-    private MockMvc mockMvc;
-    @Autowired
-    private ObjectMapper objectMapper;
-    @Autowired
     private FilmorateApi filmorateApi;
+
+    @Test
+    void getUserById() throws Exception {
+        User user = new UserBuilder().build();
+        int userId = filmorateApi.createAndGetId(user);
+
+        filmorateApi.getUserById(userId).andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(userId))
+                .andExpect(jsonPath("$.email").value(user.getEmail()))
+                .andExpect(jsonPath("$.login").value(user.getLogin()))
+                .andExpect(jsonPath("$.name").value(user.getName()))
+                .andExpect(jsonPath("$.birthday").value(user.getBirthday().toString()));
+    }
+
+    @Test
+    void idMustExistOnGetUserById() throws Exception {
+        filmorateApi.getUserById(999).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getAllUsers() throws Exception {
+        filmorateApi.create(new UserBuilder().build());
+
+        filmorateApi.getAllUsers().andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
+    }
 
     @Test
     void userCreate() throws Exception {
@@ -173,23 +198,6 @@ public class UserControllerTest {
                 .andExpect(validationError("birthday", "must be a past date"));
     }
 
-    @Test
-    void getUserById() throws Exception {
-        User user = new UserBuilder().build();
-        int userId = filmorateApi.createAndGetId(user);
-
-        filmorateApi.getUserById(userId).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(userId))
-                .andExpect(jsonPath("$.email").value(user.getEmail()))
-                .andExpect(jsonPath("$.login").value(user.getLogin()))
-                .andExpect(jsonPath("$.name").value(user.getName()))
-                .andExpect(jsonPath("$.birthday").value(user.getBirthday().toString()));
-    }
-
-    @Test
-    void idMustExistOnGetUserById() throws Exception {
-        filmorateApi.getUserById(999).andExpect(status().isNotFound());
-    }
 
     @Test
     void addFriend() throws Exception {
@@ -245,6 +253,7 @@ public class UserControllerTest {
         filmorateApi.addFriend(userId2, userId1);
 
         filmorateApi.deleteFriend(userId1, userId2).andExpect(status().isOk());
+        filmorateApi.deleteFriend(userId2, userId1).andExpect(status().isOk());
         filmorateApi.getFriends(userId1).andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
         filmorateApi.getFriends(userId2).andExpect(status().isOk())

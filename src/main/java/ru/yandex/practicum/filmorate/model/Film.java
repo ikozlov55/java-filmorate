@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import ru.yandex.practicum.filmorate.validation.FilmRating;
 import ru.yandex.practicum.filmorate.validation.FilmReleaseDate;
 
 import java.time.LocalDate;
@@ -26,7 +25,8 @@ public class Film {
     @Positive
     private Integer duration;
     private Integer likes = 0;
-    private Set<String> genres = new HashSet<>();
-    @FilmRating
-    private String rating;
+    private Set<Genre> genres = new HashSet<>();
+    @NotNull
+    private Mpa mpa;
 }
+

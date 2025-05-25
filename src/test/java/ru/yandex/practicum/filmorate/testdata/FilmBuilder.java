@@ -2,9 +2,11 @@ package ru.yandex.practicum.filmorate.testdata;
 
 import net.datafaker.Faker;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.validation.FilmRatingValidator;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
@@ -14,8 +16,8 @@ public class FilmBuilder {
     private String description;
     private LocalDate releaseDate;
     private Integer duration;
-    private String rating;
-    private Set<String> genres;
+    private Mpa mpa;
+    private Set<Genre> genres;
     Faker faker = new Faker(Locale.of("RU"));
 
     public FilmBuilder() {
@@ -23,9 +25,11 @@ public class FilmBuilder {
         description = makeDescription();
         releaseDate = faker.timeAndDate().birthday(0, 40);
         duration = faker.random().nextInt(60, 120);
-        int raringIndex = faker.random().nextInt(FilmRatingValidator.RATING_NAMES.size());
-        rating = FilmRatingValidator.RATING_NAMES.stream().toList().get(raringIndex);
-        genres = Set.of("Комедия");
+        mpa = new Mpa();
+        mpa.setId(faker.random().nextInt(1, 5));
+        Genre genre = new Genre();
+        genre.setId(faker.random().nextInt(1, 6));
+        genres = Set.of(genre);
     }
 
     public FilmBuilder id(int id) {
@@ -53,12 +57,20 @@ public class FilmBuilder {
         return this;
     }
 
-    public FilmBuilder rating(String rating) {
-        this.rating = rating;
+    public FilmBuilder mpa(Integer mpaId) {
+        Mpa mpa = new Mpa();
+        mpa.setId(mpaId);
+        this.mpa = mpa;
         return this;
     }
 
-    public FilmBuilder genres(Set<String> genres) {
+    public FilmBuilder genres(int... genresIds) {
+        Set<Genre> genres = new HashSet<>();
+        for (int genreId : genresIds) {
+            Genre genre = new Genre();
+            genre.setId(genreId);
+            genres.add(genre);
+        }
         this.genres = genres;
         return this;
     }
@@ -70,7 +82,7 @@ public class FilmBuilder {
         film.setDescription(description);
         film.setReleaseDate(releaseDate);
         film.setDuration(duration);
-        film.setRating(rating);
+        film.setMpa(mpa);
         film.setGenres(genres);
         return film;
     }
