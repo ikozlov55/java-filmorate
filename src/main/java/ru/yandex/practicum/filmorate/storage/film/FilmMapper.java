@@ -7,9 +7,7 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -39,7 +37,9 @@ public class FilmMapper implements RowMapper<Film> {
                         return genre;
                     })
                     .collect(Collectors.toSet());
-            film.setGenres(genres);
+            Set<Genre> sortedGenres = new TreeSet<>(Comparator.comparing(Genre::getId));
+            sortedGenres.addAll(genres);
+            film.setGenres(sortedGenres);
         }
         Mpa mpa = new Mpa();
         mpa.setId(rs.getInt("mpa_id"));
