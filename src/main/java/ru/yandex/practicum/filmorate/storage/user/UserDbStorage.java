@@ -23,7 +23,7 @@ public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FriendRequestStorage friendRequestStorage;
 
-    private final String SELECT_FILMS_QUERY = """
+    private static final String SELECT_FILMS_QUERY = """
             SELECT id,
                    email,
                    login,
