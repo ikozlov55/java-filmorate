@@ -43,7 +43,7 @@ public class FriendRequestDbStorage implements FriendRequestStorage {
 
     @Override
     public void update(int userId, int friendId, FriendRequestStatus status) {
-        jdbcTemplate.update(""" 
+        jdbcTemplate.update("""
                 UPDATE users_friends_requests
                    SET status = ?
                  WHERE user_id = ?
