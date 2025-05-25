@@ -109,6 +109,7 @@ public class InMemoryUserStorage implements UserStorage {
                 .collect(Collectors.toSet()));
         return commonFriendsIds.stream().map(this::getById).toList();
     }
+
     @Override
     public void checkUserExists(int id) {
         if (!users.containsKey(id)) {
