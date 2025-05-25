@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestStatus;
@@ -74,6 +75,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
+    @Transactional
     public User delete(User user) {
         checkUserExists(user.getId());
         jdbcTemplate.update("DELETE FROM users_films_likes WHERE user_id = ?;", user.getId());

@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -64,6 +65,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    @Transactional
     public Film create(Film film) {
         mpaStorage.checkMpaExists(film.getMpa().getId());
         film.getGenres().forEach(g -> genreStorage.checkGenreExists(g.getId()));
@@ -83,6 +85,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    @Transactional
     public Film update(Film film) {
         checkFilmExists(film.getId());
         mpaStorage.checkMpaExists(film.getMpa().getId());
@@ -103,6 +106,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    @Transactional
     public Film delete(Film film) {
         checkFilmExists(film.getId());
         jdbcTemplate.update("DELETE FROM films_genres WHERE film_id = ?;", film.getId());
