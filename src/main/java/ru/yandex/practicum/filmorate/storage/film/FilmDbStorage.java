@@ -29,7 +29,7 @@ public class FilmDbStorage implements FilmStorage {
     private final UserStorage userStorage;
     private final GenreStorage genreStorage;
     private final MpaStorage mpaStorage;
-    private final String SELECT_FILMS_QUERY = """
+    private final String select_films_query = """
                 SELECT f.id,
                        f.name,
                        f.description,
@@ -52,14 +52,14 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Collection<Film> getAll() {
-        String query = String.format(SELECT_FILMS_QUERY, "", "");
+        String query = String.format(select_films_query, "", "");
         return jdbcTemplate.query(query, new FilmMapper());
     }
 
     @Override
     public Film getById(int id) {
         checkFilmExists(id);
-        String query = String.format(SELECT_FILMS_QUERY, "WHERE f.id = ?", "");
+        String query = String.format(select_films_query, "WHERE f.id = ?", "");
         return jdbcTemplate.queryForObject(query, new FilmMapper(), id);
     }
 
@@ -138,7 +138,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Collection<Film> filmsPopular(Integer count) {
-        String query = String.format(SELECT_FILMS_QUERY, "", String.format("ORDER BY likes DESC LIMIT %d", count));
+        String query = String.format(select_films_query, "", String.format("ORDER BY likes DESC LIMIT %d", count));
         return jdbcTemplate.query(query, new FilmMapper());
     }
 
