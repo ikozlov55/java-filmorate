@@ -23,6 +23,7 @@ import java.util.Map;
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FriendRequestStorage friendRequestStorage;
+    private final SimpleJdbcInsert usersJdbcInsert;
 
     private static final String SELECT_FILMS_QUERY = """
             SELECT id,
@@ -31,18 +32,18 @@ public class UserDbStorage implements UserStorage {
                    name,
                    birthday
               FROM users
-                   %s;
+                   %s
             """;
 
     @Override
     public Collection<User> getAll() {
-        return jdbcTemplate.query(String.format(SELECT_FILMS_QUERY, ""), new UserMapper());
+        return jdbcTemplate.query(String.format(SELECT_FILMS_QUERY, ""), UserMapper.getInstance());
     }
 
     @Override
     public User getById(int id) {
         checkUserExists(id);
-        return jdbcTemplate.queryForObject(String.format(SELECT_FILMS_QUERY, "WHERE id = ?"), new UserMapper(), id);
+        return jdbcTemplate.queryForObject(String.format(SELECT_FILMS_QUERY, "WHERE id = ?"), UserMapper.getInstance(), id);
     }
 
     @Override
@@ -53,10 +54,7 @@ public class UserDbStorage implements UserStorage {
         argsMap.put("name", user.getName());
         argsMap.put("birthday", user.getBirthday());
 
-        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName("users")
-                .usingGeneratedKeyColumns("id");
-        int userId = simpleJdbcInsert.executeAndReturnKey(argsMap).intValue();
+        int userId = usersJdbcInsert.executeAndReturnKey(argsMap).intValue();
         return getById(userId);
     }
 
@@ -69,7 +67,7 @@ public class UserDbStorage implements UserStorage {
                        login = ?,
                        name = ?,
                        birthday = ?
-                 WHERE id = ?;
+                 WHERE id = ?
                 """, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
         return getById(user.getId());
     }
@@ -78,9 +76,9 @@ public class UserDbStorage implements UserStorage {
     @Transactional
     public User delete(User user) {
         checkUserExists(user.getId());
-        jdbcTemplate.update("DELETE FROM users_films_likes WHERE user_id = ?;", user.getId());
-        jdbcTemplate.update("DELETE FROM users_friends_requests WHERE user_id = ?;", user.getId());
-        jdbcTemplate.update("DELETE FROM users WHERE id = ?;", user.getId());
+        jdbcTemplate.update("DELETE FROM users_films_likes WHERE user_id = ?", user.getId());
+        jdbcTemplate.update("DELETE FROM users_friends_requests WHERE user_id = ?", user.getId());
+        jdbcTemplate.update("DELETE FROM users WHERE id = ?", user.getId());
         return user;
     }
 
@@ -141,7 +139,7 @@ public class UserDbStorage implements UserStorage {
                      )
                 """);
         String status = FriendRequestStatus.APPROVED.name().toLowerCase();
-        return jdbcTemplate.query(query, new UserMapper(), userId, userId, status);
+        return jdbcTemplate.query(query, UserMapper.getInstance(), userId, userId, status);
     }
 
     @Override
@@ -170,7 +168,7 @@ public class UserDbStorage implements UserStorage {
                      )
                 """);
         String status = FriendRequestStatus.APPROVED.name().toLowerCase();
-        return jdbcTemplate.query(query, new UserMapper(), userId, userId, status, otherId, otherId, status);
+        return jdbcTemplate.query(query, UserMapper.getInstance(), userId, userId, status, otherId, otherId, status);
     }
 
     @Override

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import ru.yandex.practicum.filmorate.FilmorateJdbcConfig;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -26,7 +27,8 @@ import java.util.List;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({FilmDbStorage.class, GenreDbStorage.class, MpaDbStorage.class, UserDbStorage.class, FriendRequestDbStorage.class})
+@Import({FilmDbStorage.class, GenreDbStorage.class, MpaDbStorage.class, UserDbStorage.class,
+        FriendRequestDbStorage.class, FilmorateJdbcConfig.class})
 public class FilmStorageTest {
     private final FilmDbStorage filmStorage;
     private final UserDbStorage userStorage;
@@ -83,8 +85,24 @@ public class FilmStorageTest {
         Assertions.assertEquals(filmInput.getDescription(), film.getDescription());
         Assertions.assertEquals(filmInput.getReleaseDate(), film.getReleaseDate());
         Assertions.assertEquals(filmInput.getDuration(), film.getDuration());
-        Assertions.assertEquals(filmInput.getLikes(), 0);
+        Assertions.assertEquals(0, film.getLikes());
         TestUtils.compareGenres(filmInput, film);
+        Assertions.assertEquals(filmInput.getMpa().getId(), film.getMpa().getId());
+    }
+
+    @Test
+    public void filmCreateWithoutGenres() {
+        Film filmInput = new FilmBuilder().genres().build();
+
+        Film film = filmStorage.create(filmInput);
+
+        Assertions.assertTrue(film.getId() > 0);
+        Assertions.assertEquals(filmInput.getName(), film.getName());
+        Assertions.assertEquals(filmInput.getDescription(), film.getDescription());
+        Assertions.assertEquals(filmInput.getReleaseDate(), film.getReleaseDate());
+        Assertions.assertEquals(filmInput.getDuration(), film.getDuration());
+        Assertions.assertEquals(0, film.getLikes());
+        Assertions.assertTrue(film.getGenres().isEmpty());
         Assertions.assertEquals(filmInput.getMpa().getId(), film.getMpa().getId());
     }
 
@@ -107,7 +125,7 @@ public class FilmStorageTest {
         Assertions.assertEquals(filmInput.getDescription(), film.getDescription());
         Assertions.assertEquals(filmInput.getReleaseDate(), film.getReleaseDate());
         Assertions.assertEquals(filmInput.getDuration(), film.getDuration());
-        Assertions.assertEquals(filmInput.getLikes(), film.getLikes());
+        Assertions.assertEquals(0, film.getLikes());
         TestUtils.compareGenres(filmInput, film);
         Assertions.assertEquals(filmInput.getMpa().getId(), film.getMpa().getId());
     }

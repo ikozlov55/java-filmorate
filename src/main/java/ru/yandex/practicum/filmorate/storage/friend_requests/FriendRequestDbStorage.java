@@ -15,6 +15,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class FriendRequestDbStorage implements FriendRequestStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final SimpleJdbcInsert friendsRequestsJdbcInsert;
 
     @Override
     public Optional<FriendRequestStatus> get(int userId, int friendId) {
@@ -36,9 +37,7 @@ public class FriendRequestDbStorage implements FriendRequestStorage {
         argsMap.put("friend_id", friendId);
         argsMap.put("status", status.name().toLowerCase());
 
-        new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName("users_friends_requests")
-                .execute(argsMap);
+        friendsRequestsJdbcInsert.execute(argsMap);
     }
 
     @Override

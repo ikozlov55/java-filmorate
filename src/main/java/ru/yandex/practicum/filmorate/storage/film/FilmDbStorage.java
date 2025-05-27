@@ -27,6 +27,8 @@ import java.util.*;
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final SimpleJdbcInsert filmsJdbcInsert;
+    private final SimpleJdbcInsert filmsLikesJdbcInsert;
     private final UserStorage userStorage;
     private final GenreStorage genreStorage;
     private final MpaStorage mpaStorage;
@@ -39,29 +41,29 @@ public class FilmDbStorage implements FilmStorage {
                        f.mpa_id,
                        m.name AS mpa_name,
                        COUNT(ufl.film_id) AS likes,
-                       group_concat(fg.genre_id separator ',') AS genres_ids,
-                       group_concat(g.name separator ',') AS genres_names
+                       COALESCE(group_concat(fg.genre_id separator ','), '') AS genres_ids,
+                       COALESCE(group_concat(g.name separator ','), '') AS genres_names
                   FROM films f
-             LEFT JOIN mpa m ON f.mpa_id = m.id
+                  JOIN mpa m ON f.mpa_id = m.id
              LEFT JOIN users_films_likes ufl ON f.id = ufl.film_id
              LEFT JOIN films_genres fg ON f.id = fg.film_id
              LEFT JOIN genres g ON fg.genre_id = g.id
                        %s
                  GROUP BY f.id
-                       %s;
+                       %s
             """;
 
     @Override
     public Collection<Film> getAll() {
         String query = String.format(SELECT_FILMS_QUERY, "", "");
-        return jdbcTemplate.query(query, new FilmMapper());
+        return jdbcTemplate.query(query, FilmMapper.getInstance());
     }
 
     @Override
     public Film getById(int id) {
         checkFilmExists(id);
         String query = String.format(SELECT_FILMS_QUERY, "WHERE f.id = ?", "");
-        return jdbcTemplate.queryForObject(query, new FilmMapper(), id);
+        return jdbcTemplate.queryForObject(query, FilmMapper.getInstance(), id);
     }
 
     @Override
@@ -76,10 +78,7 @@ public class FilmDbStorage implements FilmStorage {
         argsMap.put("duration", film.getDuration());
         argsMap.put("mpa_id", film.getMpa().getId());
 
-        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName("films")
-                .usingGeneratedKeyColumns("id");
-        int filmId = simpleJdbcInsert.executeAndReturnKey(argsMap).intValue();
+        int filmId = filmsJdbcInsert.executeAndReturnKey(argsMap).intValue();
         setFilmGenres(filmId, film.getGenres());
         return getById(filmId);
     }
@@ -97,10 +96,10 @@ public class FilmDbStorage implements FilmStorage {
                               release_date = ?,
                               duration = ?,
                               mpa_id = ?
-                        WHERE id = ?;
+                        WHERE id = ?
                         """, film.getName(), film.getDescription(), film.getReleaseDate(),
                 film.getDuration(), film.getMpa().getId(), film.getId());
-        jdbcTemplate.update("DELETE FROM films_genres WHERE film_id = ?;", film.getId());
+        jdbcTemplate.update("DELETE FROM films_genres WHERE film_id = ?", film.getId());
         setFilmGenres(film.getId(), film.getGenres());
         return getById(film.getId());
     }
@@ -109,9 +108,9 @@ public class FilmDbStorage implements FilmStorage {
     @Transactional
     public Film delete(Film film) {
         checkFilmExists(film.getId());
-        jdbcTemplate.update("DELETE FROM films_genres WHERE film_id = ?;", film.getId());
-        jdbcTemplate.update("DELETE FROM users_films_likes WHERE film_id = ?;", film.getId());
-        jdbcTemplate.update("DELETE FROM films WHERE id = ?;", film.getId());
+        jdbcTemplate.update("DELETE FROM films_genres WHERE film_id = ?", film.getId());
+        jdbcTemplate.update("DELETE FROM users_films_likes WHERE film_id = ?", film.getId());
+        jdbcTemplate.update("DELETE FROM films WHERE id = ?", film.getId());
         return film;
     }
 
@@ -125,7 +124,7 @@ public class FilmDbStorage implements FilmStorage {
         Map<String, Object> argsMap = new HashMap<>();
         argsMap.put("film_id", filmId);
         argsMap.put("user_id", userId);
-        new SimpleJdbcInsert(jdbcTemplate).withTableName("users_films_likes").execute(argsMap);
+        filmsLikesJdbcInsert.execute(argsMap);
     }
 
     @Override
@@ -136,14 +135,14 @@ public class FilmDbStorage implements FilmStorage {
                 DELETE
                   FROM users_films_likes
                  WHERE film_id = ?
-                   AND user_id = ?;
+                   AND user_id = ?
                 """, filmId, userId);
     }
 
     @Override
     public Collection<Film> filmsPopular(Integer count) {
         String query = String.format(SELECT_FILMS_QUERY, "", String.format("ORDER BY likes DESC LIMIT %d", count));
-        return jdbcTemplate.query(query, new FilmMapper());
+        return jdbcTemplate.query(query, FilmMapper.getInstance());
     }
 
     @Override
@@ -160,7 +159,7 @@ public class FilmDbStorage implements FilmStorage {
     private void setFilmGenres(int filmId, Set<Genre> genres) {
         List<Genre> genresList = genres.stream().toList();
         jdbcTemplate.batchUpdate(
-                "INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?);",
+                "INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)",
                 new BatchPreparedStatementSetter() {
 
                     @Override

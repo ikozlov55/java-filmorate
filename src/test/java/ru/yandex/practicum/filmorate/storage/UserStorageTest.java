@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import ru.yandex.practicum.filmorate.FilmorateJdbcConfig;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestDbStorage;
@@ -20,7 +21,7 @@ import java.util.List;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({UserDbStorage.class, FriendRequestDbStorage.class})
+@Import({UserDbStorage.class, FriendRequestDbStorage.class, FilmorateJdbcConfig.class})
 public class UserStorageTest {
     private final UserDbStorage userStorage;
 

@@ -19,13 +19,13 @@ public class GenreDbStorage implements GenreStorage {
 
     @Override
     public Collection<Genre> getAll() {
-        return jdbcTemplate.query("SELECT id, name FROM genres;", new GenreMapper());
+        return jdbcTemplate.query("SELECT id, name FROM genres", GenreMapper.getInstance());
     }
 
     @Override
     public Genre getById(int id) {
         checkGenreExists(id);
-        return jdbcTemplate.queryForObject("SELECT id, name FROM genres WHERE id = ?;", new GenreMapper(), id);
+        return jdbcTemplate.queryForObject("SELECT id, name FROM genres WHERE id = ?", GenreMapper.getInstance(), id);
     }
 
     @Override
