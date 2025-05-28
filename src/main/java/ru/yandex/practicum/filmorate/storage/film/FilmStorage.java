@@ -20,4 +20,6 @@ public interface FilmStorage {
     void deleteLike(int filmId, int userId);
 
     Collection<Film> filmsPopular(Integer count);
+
+    void checkFilmExists(int id);
 }

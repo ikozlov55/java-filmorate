@@ -4,15 +4,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestStatus;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 public class InMemoryUserStorage implements UserStorage {
     private static int nextEntityId = 1;
     private final Map<Integer, User> users = new HashMap<>();
-    private final Map<Integer, Set<Integer>> usersFriends = new HashMap<>();
+    private final Map<Integer, Map<Integer, FriendRequestStatus>> usersFriends = new HashMap<>();
+
 
     @Override
     public Collection<User> getAll() {
@@ -21,7 +27,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User getById(int id) {
-        checkEntityExists(id);
+        checkUserExists(id);
         return users.get(id);
     }
 
@@ -35,35 +41,41 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User update(User user) {
-        checkEntityExists(user.getId());
+        checkUserExists(user.getId());
         users.put(user.getId(), user);
         return user;
     }
 
     @Override
     public User delete(User user) {
-        checkEntityExists(user.getId());
+        checkUserExists(user.getId());
         return users.remove(user.getId());
     }
 
     @Override
     public void addFriend(int userId, int friendId) {
-        checkEntityExists(userId);
-        checkEntityExists(friendId);
+        checkUserExists(userId);
+        checkUserExists(friendId);
         if (!usersFriends.containsKey(userId)) {
-            usersFriends.put(userId, new HashSet<>());
+            usersFriends.put(userId, new HashMap<>());
         }
         if (!usersFriends.containsKey(friendId)) {
-            usersFriends.put(friendId, new HashSet<>());
+            usersFriends.put(friendId, new HashMap<>());
         }
-        usersFriends.get(userId).add(friendId);
-        usersFriends.get(friendId).add(userId);
+
+        if (usersFriends.get(friendId).containsKey(userId)) {
+            usersFriends.get(userId).put(friendId, FriendRequestStatus.APPROVED);
+            usersFriends.get(friendId).put(userId, FriendRequestStatus.APPROVED);
+        }
+        if (!usersFriends.get(userId).containsKey(friendId)) {
+            usersFriends.get(userId).put(friendId, FriendRequestStatus.UNAPPROVED);
+        }
     }
 
     @Override
     public void deleteFriend(int userId, int friendId) {
-        checkEntityExists(userId);
-        checkEntityExists(friendId);
+        checkUserExists(userId);
+        checkUserExists(friendId);
         if (usersFriends.containsKey(userId)) {
             usersFriends.get(userId).remove(friendId);
         }
@@ -74,20 +86,32 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public Collection<User> getFriends(int userId) {
-        checkEntityExists(userId);
-        return usersFriends.getOrDefault(userId, Set.of()).stream().map(this::getById).toList();
+        checkUserExists(userId);
+        return usersFriends.getOrDefault(userId, Map.of())
+                .entrySet().stream()
+                .filter(e -> e.getValue() == FriendRequestStatus.APPROVED)
+                .map(Map.Entry::getKey)
+                .map(this::getById).toList();
     }
 
     @Override
     public Collection<User> getCommonFriends(int userId, int otherId) {
-        checkEntityExists(userId);
-        checkEntityExists(otherId);
-        Set<Integer> commonFriendsIds = usersFriends.getOrDefault(userId, Set.of());
-        commonFriendsIds.retainAll(usersFriends.getOrDefault(otherId, Set.of()));
+        checkUserExists(userId);
+        checkUserExists(otherId);
+        Set<Integer> commonFriendsIds = usersFriends.getOrDefault(userId, Map.of())
+                .entrySet().stream()
+                .filter(e -> e.getValue() == FriendRequestStatus.APPROVED)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+        commonFriendsIds.retainAll(usersFriends.getOrDefault(otherId, Map.of()).entrySet().stream()
+                .filter(e -> e.getValue() == FriendRequestStatus.APPROVED)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet()));
         return commonFriendsIds.stream().map(this::getById).toList();
     }
 
-    private void checkEntityExists(int id) {
+    @Override
+    public void checkUserExists(int id) {
         if (!users.containsKey(id)) {
             String reason = String.format("user with id %d not found", id);
             log.warn("Validation failed: {}", reason);

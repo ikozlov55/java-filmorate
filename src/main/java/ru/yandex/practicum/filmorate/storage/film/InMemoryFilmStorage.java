@@ -21,7 +21,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film getById(int id) {
-        checkEntityExists(id);
+        checkFilmExists(id);
         return films.get(id);
     }
 
@@ -35,7 +35,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film update(Film film) {
-        checkEntityExists(film.getId());
+        checkFilmExists(film.getId());
         film.setLikes(films.get(film.getId()).getLikes());
         films.put(film.getId(), film);
         return film;
@@ -43,13 +43,13 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film delete(Film film) {
-        checkEntityExists(film.getId());
+        checkFilmExists(film.getId());
         return films.remove(film.getId());
     }
 
     @Override
     public void addLike(int filmId, int userId) {
-        checkEntityExists(filmId);
+        checkFilmExists(filmId);
         if (!filmsToUsersLiked.containsKey(filmId)) {
             filmsToUsersLiked.put(filmId, new HashSet<>());
         }
@@ -59,7 +59,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void deleteLike(int filmId, int userId) {
-        checkEntityExists(filmId);
+        checkFilmExists(filmId);
         if (!filmsToUsersLiked.containsKey(filmId)) {
             return;
         }
@@ -75,7 +75,8 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .toList();
     }
 
-    private void checkEntityExists(int id) {
+    @Override
+    public void checkFilmExists(int id) {
         if (!films.containsKey(id)) {
             String reason = String.format("film with id %d not found", id);
             log.warn("Validation failed: {}", reason);

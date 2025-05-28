@@ -22,4 +22,6 @@ public interface UserStorage {
     Collection<User> getFriends(int userId);
 
     Collection<User> getCommonFriends(int userId, int otherId);
+
+    void checkUserExists(int id);
 }

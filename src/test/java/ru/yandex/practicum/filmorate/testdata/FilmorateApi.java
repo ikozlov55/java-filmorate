@@ -20,7 +20,7 @@ public class FilmorateApi {
     private final ObjectMapper objectMapper;
 
 
-    private ResultActions getAllUsers() throws Exception {
+    public ResultActions getAllUsers() throws Exception {
         return mockMvc.perform(get("/users"));
     }
 
@@ -63,7 +63,7 @@ public class FilmorateApi {
         return mockMvc.perform(get("/users/{userId}/friends/common/{otherId}", userId, otherId));
     }
 
-    private ResultActions getAllFilms() throws Exception {
+    public ResultActions getAllFilms() throws Exception {
         return mockMvc.perform(get("/films"));
     }
 
@@ -102,4 +102,19 @@ public class FilmorateApi {
         return mockMvc.perform(get("/films/popular?count={count}", count));
     }
 
+    public ResultActions getGenreById(int genreId) throws Exception {
+        return mockMvc.perform(get("/genres/{genreId}", genreId));
+    }
+
+    public ResultActions getAllGenres() throws Exception {
+        return mockMvc.perform(get("/genres"));
+    }
+
+    public ResultActions getMpaById(int mpaId) throws Exception {
+        return mockMvc.perform(get("/mpa/{mpaId}", mpaId));
+    }
+
+    public ResultActions getAllMpa() throws Exception {
+        return mockMvc.perform(get("/mpa"));
+    }
 }
