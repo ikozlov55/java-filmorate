@@ -78,6 +78,7 @@ public class UserDbStorage implements UserStorage {
         checkUserExists(userId);
         jdbcTemplate.update("DELETE FROM users_films_likes WHERE user_id = ?", userId);
         jdbcTemplate.update("DELETE FROM users_friends_requests WHERE user_id = ?", userId);
+        jdbcTemplate.update("DELETE FROM users_friends_requests WHERE friend_id = ?", userId);
         jdbcTemplate.update("DELETE FROM users WHERE id = ?", userId);
     }
 
