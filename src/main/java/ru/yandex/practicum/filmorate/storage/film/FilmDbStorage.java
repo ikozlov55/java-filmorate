@@ -156,6 +156,13 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
+    @Override
+    public Collection<Film> filmSearch(String searchTitle) {
+        String searchQuery = "%" + searchTitle + "%";
+        String query = String.format(SELECT_FILMS_QUERY, "WHERE LOWER(f.name) LIKE LOWER(?)", "");
+        return jdbcTemplate.query(query, FilmMapper.getInstance(), searchQuery);
+    }
+
     private void setFilmGenres(int filmId, Set<Genre> genres) {
         List<Genre> genresList = genres.stream().toList();
         jdbcTemplate.batchUpdate(

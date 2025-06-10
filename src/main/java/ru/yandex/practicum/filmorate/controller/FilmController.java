@@ -50,5 +50,10 @@ public class FilmController {
     public Collection<Film> filmsPopular(@RequestParam(required = false) Integer count) {
         return filmService.filmsPopular(count);
     }
+
+    @GetMapping("/search")
+    public Collection<Film> filmsSearch(@RequestParam String searchTitle) {
+        return filmService.filmSearch(searchTitle);
+    }
 }
 

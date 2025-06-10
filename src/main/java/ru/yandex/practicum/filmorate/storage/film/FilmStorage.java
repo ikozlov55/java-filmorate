@@ -22,4 +22,6 @@ public interface FilmStorage {
     Collection<Film> filmsPopular(Integer count);
 
     void checkFilmExists(int id);
+
+    Collection<Film> filmSearch(String query);
 }
