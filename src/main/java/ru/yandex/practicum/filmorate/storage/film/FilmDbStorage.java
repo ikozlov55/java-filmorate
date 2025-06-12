@@ -215,19 +215,22 @@ COALESCE — это функция, которая возвращает перв
      */
     private void setFilmDirectors(int filmId, Set<Director> directors) {
         List<Director> directorsList = directors.stream().toList();
-        jdbcTemplate.batchUpdate( //используется для выполнения пакетного обновления (вставки) данных в таблицу films_directors.
-                "INSERT INTO films_directors (film_id, director_id) VALUES (?, ?)",//SQL-запрос для вставки данных в таблицу.
+        //используется для выполнения пакетного обновления (вставки) данных в таблицу films_directors.
+        jdbcTemplate.batchUpdate(
+                "INSERT INTO films_directors (film_id, director_id) VALUES (?, ?)",//SQL-запрос для вставки данных.
                 new BatchPreparedStatementSetter() { //определяет, как будут заполняться параметры SQL-запроса.
 
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
                         ps.setInt(1, filmId);//устанавливает идентификатор фильма.
-                        ps.setInt(2, directorsList.get(i).getId()); //устанавливает идентификатор режиссера из списка режиссеров.
+                        //устанавливает идентификатор режиссера из списка режиссеров.
+                        ps.setInt(2, directorsList.get(i).getId());
                         System.out.println(ps);
                     }
 
+                    //возвращает размер пакета, то есть количество режиссеров, которые нужно связать с фильмом.
                     @Override
-                    public int getBatchSize() {//возвращает размер пакета, то есть количество режиссеров, которые нужно связать с фильмом.
+                    public int getBatchSize() {
                         return directors.size();
                     }
                 }
