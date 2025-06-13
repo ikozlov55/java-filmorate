@@ -15,6 +15,12 @@ public class FilmorateJdbcConfig {
     }
 
     @Bean
+    public SimpleJdbcInsert directorsJdbcInsert(JdbcTemplate jdbcTemplate) {
+        return new SimpleJdbcInsert(jdbcTemplate).withTableName("directors")
+                .usingGeneratedKeyColumns("id");
+    }
+
+    @Bean
     public SimpleJdbcInsert filmsLikesJdbcInsert(JdbcTemplate jdbcTemplate) {
         return new SimpleJdbcInsert(jdbcTemplate).withTableName("users_films_likes");
     }
