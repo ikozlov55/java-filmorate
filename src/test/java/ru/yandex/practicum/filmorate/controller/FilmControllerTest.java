@@ -120,7 +120,7 @@ public class FilmControllerTest {
         filmorateApi.update(film).andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(filmId))
                 .andExpect(jsonPath("$.name").value(film.getName()))
-                .andExpect(jsonPath("$.likes").value(99));
+                .andExpect(jsonPath("$.likes").value(0));
     }
 
     @Test

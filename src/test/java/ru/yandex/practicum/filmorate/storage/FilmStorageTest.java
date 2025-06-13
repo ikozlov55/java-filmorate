@@ -133,7 +133,7 @@ public class FilmStorageTest {
         Assertions.assertEquals(filmInput.getDescription(), film.getDescription());
         Assertions.assertEquals(filmInput.getReleaseDate(), film.getReleaseDate());
         Assertions.assertEquals(filmInput.getDuration(), film.getDuration());
-        Assertions.assertEquals(null, film.getLikes());
+        Assertions.assertEquals(0, film.getLikes());
         TestUtils.compareGenres(filmInput, film);
         Assertions.assertEquals(filmInput.getMpa().getId(), film.getMpa().getId());
     }
@@ -142,10 +142,11 @@ public class FilmStorageTest {
     public void filmDelete() {
         Film filmInput = filmStorage.create(new FilmBuilder().build());
 
-        Film film = filmStorage.delete(filmInput);
+        int filmId = filmInput.getId();
 
-        Assertions.assertEquals(filmInput.getId(), film.getId());
-        Assertions.assertThrows(NotFoundException.class, () -> filmStorage.getById(film.getId()));
+        filmStorage.delete(filmId);
+
+        Assertions.assertThrows(NotFoundException.class, () -> filmStorage.getById(filmId));
     }
 
     @Test

@@ -43,9 +43,8 @@ public abstract class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film delete(Film film) {
-        checkFilmExists(film.getId());
-        return films.remove(film.getId());
+    public void delete(int filmId) {
+        checkFilmExists(filmId);
     }
 
     @Override

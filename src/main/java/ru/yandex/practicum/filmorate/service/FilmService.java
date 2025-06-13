@@ -47,11 +47,11 @@ public class FilmService {
         return updatedFilm;
     }
 
-    public Film delete(Film film) {
-        log.info("Film delete request received {}", film);
-        Film deletedFilm = filmStorage.delete(film);
-        log.info("Film deleted successfully: {}", deletedFilm);
-        return deletedFilm;
+
+    public void delete(int filmId) {
+        log.info("Film delete request received {}", filmId);
+        filmStorage.delete(filmId);
+        log.info("Film deleted successfully: {}", filmId);
     }
 
     public void addLike(int filmId, int userId) {

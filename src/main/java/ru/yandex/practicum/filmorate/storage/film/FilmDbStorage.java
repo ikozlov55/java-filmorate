@@ -70,7 +70,6 @@ COALESCE — это функция, которая возвращает перв
                        %s
             """;
 
-
     @Override
     public Collection<Film> getAll() {
         String query = String.format(SELECT_FILMS_QUERY, "", "");
@@ -106,8 +105,6 @@ COALESCE — это функция, которая возвращает перв
         //2.  установка связи между фильмом и его режиссерами в базе данных, используя полученный идентификатор фильма.
         setFilmDirectors(filmId, film.getDirectors());
         return getById(filmId);
-        //return film;
-
     }
 
     @Override
@@ -133,18 +130,17 @@ COALESCE — это функция, которая возвращает перв
         jdbcTemplate.update("DELETE FROM films_directors WHERE film_id = ?", film.getId());
         setFilmGenres(film.getId(), film.getGenres());
         setFilmDirectors(film.getId(), film.getDirectors());
-        return film;
+        return getById(film.getId());
     }
 
     @Override
     @Transactional
-    public Film delete(Film film) {
-        checkFilmExists(film.getId());
-        jdbcTemplate.update("DELETE FROM films_genres WHERE film_id = ?", film.getId());
-        jdbcTemplate.update("DELETE FROM users_films_likes WHERE film_id = ?", film.getId());
-        jdbcTemplate.update("DELETE FROM films_directors WHERE film_id = ?", film.getId());
-        jdbcTemplate.update("DELETE FROM films WHERE id = ?", film.getId());
-        return film;
+    public void delete(int filmId) {
+        checkFilmExists(filmId);
+        jdbcTemplate.update("DELETE FROM films_genres WHERE film_id = ?", filmId);
+        jdbcTemplate.update("DELETE FROM users_films_likes WHERE film_id = ?", filmId);
+        jdbcTemplate.update("DELETE FROM films_directors WHERE film_id = ?", filmId);
+        jdbcTemplate.update("DELETE FROM films WHERE id = ?", filmId);
     }
 
     @Override

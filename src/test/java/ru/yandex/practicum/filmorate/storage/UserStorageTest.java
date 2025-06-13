@@ -105,10 +105,11 @@ public class UserStorageTest {
     void userDelete() {
         User userInput = userStorage.create(new UserBuilder().build());
 
-        User user = userStorage.delete(userInput);
+        int userId = userInput.getId();
 
-        Assertions.assertEquals(userInput.getId(), user.getId());
-        Assertions.assertThrows(NotFoundException.class, () -> userStorage.getById(user.getId()));
+        userStorage.delete(userId);
+
+        Assertions.assertThrows(NotFoundException.class, () -> userStorage.getById(userId));
     }
 
     @Test

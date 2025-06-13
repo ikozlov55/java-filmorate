@@ -48,9 +48,8 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User delete(User user) {
-        checkUserExists(user.getId());
-        return users.remove(user.getId());
+    public void delete(int userId) {
+        checkUserExists(userId);
     }
 
     @Override
