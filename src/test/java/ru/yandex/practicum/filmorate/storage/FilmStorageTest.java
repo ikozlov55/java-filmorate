@@ -134,10 +134,11 @@ public class FilmStorageTest {
     public void filmDelete() {
         Film filmInput = filmStorage.create(new FilmBuilder().build());
 
-        Film film = filmStorage.delete(filmInput);
+        int filmId = filmInput.getId();
 
-        Assertions.assertEquals(filmInput.getId(), film.getId());
-        Assertions.assertThrows(NotFoundException.class, () -> filmStorage.getById(film.getId()));
+        filmStorage.delete(filmId);
+
+        Assertions.assertThrows(NotFoundException.class, () -> filmStorage.getById(filmId));
     }
 
     @Test

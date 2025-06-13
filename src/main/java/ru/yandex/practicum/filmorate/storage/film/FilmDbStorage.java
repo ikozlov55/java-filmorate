@@ -106,12 +106,11 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     @Transactional
-    public Film delete(Film film) {
-        checkFilmExists(film.getId());
-        jdbcTemplate.update("DELETE FROM films_genres WHERE film_id = ?", film.getId());
-        jdbcTemplate.update("DELETE FROM users_films_likes WHERE film_id = ?", film.getId());
-        jdbcTemplate.update("DELETE FROM films WHERE id = ?", film.getId());
-        return film;
+    public void delete(int filmId) {
+        checkFilmExists(filmId);
+        jdbcTemplate.update("DELETE FROM films_genres WHERE film_id = ?", filmId);
+        jdbcTemplate.update("DELETE FROM users_films_likes WHERE film_id = ?", filmId);
+        jdbcTemplate.update("DELETE FROM films WHERE id = ?", filmId);
     }
 
     @Override
