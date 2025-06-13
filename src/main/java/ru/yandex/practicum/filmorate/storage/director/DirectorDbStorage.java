@@ -40,19 +40,15 @@ public class DirectorDbStorage implements DirectorStorage {
     //GET /directors - Список всех режиссёров
     @Override
     public Collection<Director> getAll() {
-        String st = String.format(SELECT_DIRECTORS_QUERY, "");
-        List<Director> rq = jdbcTemplate.query(String.format(SELECT_DIRECTORS_QUERY, ""), DirectorMapper.getInstance());
-        return rq;
+        return jdbcTemplate.query(String.format(SELECT_DIRECTORS_QUERY, ""), DirectorMapper.getInstance());
     }
 
     //GET /directors/{id}- Получение режиссёра по id
     @Override
     public Director getById(int id) {
         checkDirectorExists(id);
-        String st = String.format(SELECT_DIRECTORS_QUERY, "WHERE id = ?");
-        DirectorMapper mapper = DirectorMapper.getInstance();
-        Director a = jdbcTemplate.queryForObject(String.format(SELECT_DIRECTORS_QUERY, "WHERE id = ?"), DirectorMapper.getInstance(), id);
-        return a;
+        String query = String.format(SELECT_DIRECTORS_QUERY, "WHERE id = ?");
+        return jdbcTemplate.queryForObject(String.format(query), DirectorMapper.getInstance(), id);
     }
 
     // POST /directors - Создание режиссёра
@@ -60,7 +56,7 @@ public class DirectorDbStorage implements DirectorStorage {
     public Director create(Director director) {
         Map<String, Object> argsMap = new HashMap<>();
         argsMap.put("name", director.getName());
-        // выполнение SQL-запроса для вставки данных о режиссере в базу данных и получение сгенерированного идентификатора фильма.
+//выполнение SQL-запроса для вставки данных о режиссере в базу данных и получение сгенерированного идентификатора фильма
         int directorId = directorsJdbcInsert.executeAndReturnKey(argsMap).intValue();
         director.setId(directorId);
         return director;
@@ -84,7 +80,7 @@ public class DirectorDbStorage implements DirectorStorage {
     public void delete(int directorId) {
         checkDirectorExists(directorId);
         jdbcTemplate.update("DELETE FROM films_directors WHERE director_id = ?", directorId);
-        int f = jdbcTemplate.update("DELETE FROM directors WHERE id = ?", directorId);
+        jdbcTemplate.update("DELETE FROM directors WHERE id = ?", directorId);
     }
 
     @Override

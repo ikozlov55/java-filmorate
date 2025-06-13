@@ -81,8 +81,7 @@ COALESCE — это функция, которая возвращает перв
     public Film getById(int id) {
         checkFilmExists(id);
         String query = String.format(SELECT_FILMS_QUERY, "WHERE f.id = ?", "");
-        Film f = jdbcTemplate.queryForObject(query, FilmMapper.getInstance(), id);
-        return f;
+        return jdbcTemplate.queryForObject(query, FilmMapper.getInstance(), id);
     }
 
     @Override
@@ -106,8 +105,9 @@ COALESCE — это функция, которая возвращает перв
         setFilmGenres(filmId, film.getGenres());
         //2.  установка связи между фильмом и его режиссерами в базе данных, используя полученный идентификатор фильма.
         setFilmDirectors(filmId, film.getDirectors());
-        //return getById(filmId);
-        return film;
+        return getById(filmId);
+        //return film;
+
     }
 
     @Override
@@ -263,7 +263,6 @@ COALESCE — это функция, которая возвращает перв
         } else {
             throw new ValidationException("Error parameter sort film");
         }
-        List<Film> ret = jdbcTemplate.query(query, FilmMapper.getInstance(), directorId);
-        return ret;
+        return jdbcTemplate.query(query, FilmMapper.getInstance(), directorId);
     }
 }

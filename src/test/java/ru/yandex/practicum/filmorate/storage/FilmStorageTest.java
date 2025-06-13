@@ -53,7 +53,6 @@ public class FilmStorageTest {
         Assertions.assertEquals(filmInput.getDescription(), film.getDescription());
         Assertions.assertEquals(filmInput.getReleaseDate(), film.getReleaseDate());
         Assertions.assertEquals(filmInput.getDuration(), film.getDuration());
-        //Assertions.assertEquals(filmInput.getLikes(), film.getLikes());
         Assertions.assertEquals(0, film.getLikes());
         TestUtils.compareGenres(filmInput, film);
         Assertions.assertEquals(filmInput.getMpa().getId(), film.getMpa().getId());
@@ -71,15 +70,14 @@ public class FilmStorageTest {
         Collection<Film> films = filmStorage.getAll();
 
         Assertions.assertTrue(films.size() >= filmsInput.size());
-        Assertions.assertFalse(films.containsAll(filmsInput));
+        Assertions.assertTrue(films.containsAll(filmsInput));
         Film film = films.stream().filter(f -> f.getId().equals(filmInput.getId())).findFirst().get();
         Assertions.assertEquals(filmInput.getId(), film.getId());
         Assertions.assertEquals(filmInput.getName(), film.getName());
         Assertions.assertEquals(filmInput.getDescription(), film.getDescription());
         Assertions.assertEquals(filmInput.getReleaseDate(), film.getReleaseDate());
         Assertions.assertEquals(filmInput.getDuration(), film.getDuration());
-        //Assertions.assertEquals(filmInput.getLikes(), film.getLikes());
-        Assertions.assertEquals(0, film.getLikes());
+        Assertions.assertEquals(filmInput.getLikes(), film.getLikes());
         TestUtils.compareGenres(filmInput, film);
         Assertions.assertEquals(filmInput.getMpa().getId(), film.getMpa().getId());
     }
@@ -95,7 +93,7 @@ public class FilmStorageTest {
         Assertions.assertEquals(filmInput.getDescription(), film.getDescription());
         Assertions.assertEquals(filmInput.getReleaseDate(), film.getReleaseDate());
         Assertions.assertEquals(filmInput.getDuration(), film.getDuration());
-        Assertions.assertEquals(null, film.getLikes());
+        Assertions.assertEquals(0, film.getLikes());
         TestUtils.compareGenres(filmInput, film);
         Assertions.assertEquals(filmInput.getMpa().getId(), film.getMpa().getId());
     }
@@ -111,7 +109,7 @@ public class FilmStorageTest {
         Assertions.assertEquals(filmInput.getDescription(), film.getDescription());
         Assertions.assertEquals(filmInput.getReleaseDate(), film.getReleaseDate());
         Assertions.assertEquals(filmInput.getDuration(), film.getDuration());
-        Assertions.assertEquals(null, film.getLikes());
+        Assertions.assertEquals(0, film.getLikes());
         Assertions.assertTrue(film.getGenres().isEmpty());
         Assertions.assertEquals(filmInput.getMpa().getId(), film.getMpa().getId());
     }
