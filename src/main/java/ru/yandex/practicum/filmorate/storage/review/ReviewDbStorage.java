@@ -41,8 +41,8 @@ public class ReviewDbStorage implements ReviewStorage {
                 GROUP BY r.id
                       %s
             """;
-    private final int REVIEW_LIKE_SCORE = 1;
-    private final int REVIEW_DISLIKE_SCORE = -1;
+    private static final int REVIEW_LIKE_SCORE = 1;
+    private static final int REVIEW_DISLIKE_SCORE = -1;
 
     @Override
     public Collection<Review> getAll(Integer filmId, int count) {
