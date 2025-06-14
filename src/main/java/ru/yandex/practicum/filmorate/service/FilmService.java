@@ -66,4 +66,8 @@ public class FilmService {
         count = count != null ? count : DEFAULT_FILMS_POPULAR_COUNT;
         return filmStorage.filmsPopular(count);
     }
+
+    public Collection<Film> filmsCommon(int userId, int friendId) {
+        return filmStorage.filmsCommon(userId, friendId);
+    }
 }

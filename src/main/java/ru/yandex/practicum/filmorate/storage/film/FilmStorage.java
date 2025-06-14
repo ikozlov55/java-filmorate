@@ -21,5 +21,7 @@ public interface FilmStorage {
 
     Collection<Film> filmsPopular(Integer count);
 
+    Collection<Film> filmsCommon(int userId, int friendId);
+
     void checkFilmExists(int id);
 }
