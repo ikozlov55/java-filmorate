@@ -308,14 +308,16 @@ public class FilmControllerTest {
 
     @Test
     void filmsPopular() throws Exception {
-        int usersCount = 10;
+        int usersCount = 20;
         int filmsCount = 5;
         int[] userIds = new int[usersCount];
+        int[] filmIds = new int[filmsCount];
         for (int i = 0; i < usersCount; i++) {
             userIds[i] = filmorateApi.createAndGetId(new UserBuilder().build());
         }
         for (int i = 0; i < filmsCount; i++) {
             int filmId = filmorateApi.createAndGetId(new FilmBuilder().build());
+            filmIds[i] = filmId;
             for (int j = 0; j < usersCount - i; j++) {
                 filmorateApi.addLike(filmId, userIds[j]);
             }
@@ -323,11 +325,53 @@ public class FilmControllerTest {
         filmorateApi.filmsPopular(filmsCount).andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$", hasSize(filmsCount)))
+                .andExpect(jsonPath("$[0].id").value(filmIds[0]))
                 .andExpect(jsonPath("$[0].likes").value(usersCount))
+                .andExpect(jsonPath("$[1].id").value(filmIds[1]))
                 .andExpect(jsonPath("$[1].likes").value(usersCount - 1))
+                .andExpect(jsonPath("$[2].id").value(filmIds[2]))
                 .andExpect(jsonPath("$[2].likes").value(usersCount - 2))
+                .andExpect(jsonPath("$[3].id").value(filmIds[3]))
                 .andExpect(jsonPath("$[3].likes").value(usersCount - 3))
+                .andExpect(jsonPath("$[4].id").value(filmIds[4]))
                 .andExpect(jsonPath("$[4].likes").value(usersCount - 4));
     }
 
+    @Test
+    void filmsCommon() throws Exception {
+        int usersCount = 10;
+        int filmsCount = 5;
+        int[] userIds = new int[usersCount];
+        int[] filmIds = new int[filmsCount];
+        for (int i = 0; i < usersCount; i++) {
+            userIds[i] = filmorateApi.createAndGetId(new UserBuilder().build());
+        }
+        for (int i = 0; i < filmsCount; i++) {
+            int filmId = filmorateApi.createAndGetId(new FilmBuilder().build());
+            filmIds[i] = filmId;
+            for (int j = 0; j < usersCount - i; j++) {
+                filmorateApi.addLike(filmId, userIds[j]);
+            }
+        }
+
+        filmorateApi.filmsCommon(userIds[0], userIds[7]).andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[0].id").value(filmIds[0]))
+                .andExpect(jsonPath("$[0].likes").value(usersCount))
+                .andExpect(jsonPath("$[1].id").value(filmIds[1]))
+                .andExpect(jsonPath("$[1].likes").value(usersCount - 1))
+                .andExpect(jsonPath("$[2].id").value(filmIds[2]))
+                .andExpect(jsonPath("$[2].likes").value(usersCount - 2));
+
+    }
+
+    @Test
+    void noFilmsInCommon() throws Exception {
+        int user1Id = filmorateApi.createAndGetId(new UserBuilder().build());
+        int user2Id = filmorateApi.createAndGetId(new UserBuilder().build());
+        filmorateApi.filmsCommon(user1Id, user2Id).andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
 }
