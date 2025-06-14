@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
