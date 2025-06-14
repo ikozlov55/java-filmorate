@@ -8,12 +8,15 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.film.FilmMapper;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestStatus;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestStorage;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Repository
@@ -180,5 +183,51 @@ public class UserDbStorage implements UserStorage {
             log.warn("Validation failed: {}", reason);
             throw new NotFoundException(reason);
         }
+    }
+
+    @Override
+    public Collection<Film> getRecommendations(int userId) {
+        String query = """
+                    SELECT f.id,
+                           f.name,
+                           f.description,
+                           f.release_date,
+                           f.duration,
+                           f.mpa_id,
+                           m.name AS mpa_name,
+                           COUNT(ufl.film_id) AS likes,
+                           COALESCE(group_concat(fg.genre_id separator ','), '') AS genres_ids,
+                           COALESCE(group_concat(g.name separator ','), '') AS genres_names
+                      FROM films f
+                      JOIN mpa m ON f.mpa_id = m.id
+                 LEFT JOIN users_films_likes ufl ON f.id = ufl.film_id
+                 LEFT JOIN films_genres fg ON f.id = fg.film_id
+                 LEFT JOIN genres g ON fg.genre_id = g.id
+                           %s
+                     GROUP BY f.id
+                           %s
+                """;
+        Collection<Film> userFilmsLikes = jdbcTemplate.query(String.format(query, "where ufl.user_id = ?", ""), FilmMapper.getInstance(), userId);
+        Collection<User> users = getAll();
+        users.remove(getById(userId));
+        Map<User, Integer> usersLikes = new HashMap<>();
+        for (Film film : userFilmsLikes) {
+            for (User u : users) {
+                Collection<Film> films = jdbcTemplate.query(String.format(query, "where ufl.user_id = ?", ""), FilmMapper.getInstance(), u.getId());
+                if (films.contains(film)) {
+                    if (usersLikes.containsKey(u)) {
+                        usersLikes.put(u, usersLikes.get(u) + 1);
+                        continue;
+                    }
+                    usersLikes.put(u, 1);
+                }
+            }
+        }
+        for (Map.Entry<User, Integer> entry : usersLikes.entrySet()) {
+            User key = entry.getKey();
+            Integer value = entry.getValue();
+            log.info("Key: " + key + ", Value: " + value);
+        }
+        return userFilmsLikes;
     }
 }
