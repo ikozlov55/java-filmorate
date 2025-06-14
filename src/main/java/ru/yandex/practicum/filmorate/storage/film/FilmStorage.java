@@ -30,5 +30,5 @@ public interface FilmStorage {
 
     void checkFilmExists(int id);
 
-    Collection<Film> filmSearch(String query);
+    Collection<Film> filmSearch(String searchTitle, String searchBy);
 }

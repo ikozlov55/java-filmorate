@@ -186,10 +186,23 @@ COALESCE — это функция, которая возвращает перв
     }
 
     @Override
-    public Collection<Film> filmSearch(String searchTitle) {
-        String searchQuery = "%" + searchTitle + "%";
-        String query = String.format(SELECT_FILMS_QUERY, "WHERE LOWER(f.name) LIKE LOWER(?)", "");
-        return jdbcTemplate.query(query, FilmMapper.getInstance(), searchQuery);
+    public Collection<Film> filmSearch(String searchTitle, String searchBy) {
+        if (searchTitle != null && searchBy != null) {
+            String searchQuery = "%" + searchTitle + "%";
+            String searchByQuery = "%" + searchBy + "%";
+            String newQuery = String.format(SELECT_FILMS_QUERY, "WHERE LOWER(f.name) LIKE LOWER(?) AND LOWER(d.name) LIKE LOWER(?)", "");
+            return jdbcTemplate.query(newQuery, FilmMapper.getInstance(), searchQuery, searchByQuery);
+        } else if (searchTitle != null) {
+            String searchQuery = "%" + searchTitle + "%";
+            String query = String.format(SELECT_FILMS_QUERY, "WHERE LOWER(f.name) LIKE LOWER(?)", "");
+            return jdbcTemplate.query(query, FilmMapper.getInstance(), searchQuery);
+        } else if (searchBy != null) {
+            String searchByQuery = "%" + searchBy + "%";
+            String byQuery = String.format(SELECT_FILMS_QUERY, "WHERE LOWER(d.name) LIke LOWER(?)", "");
+            return jdbcTemplate.query(byQuery, FilmMapper.getInstance(), searchByQuery);
+        } else {
+            throw new IllegalArgumentException("searchBy or searchTitle cannot be null");
+        }
     }
 
     private void setFilmGenres(int filmId, Set<Genre> genres) {

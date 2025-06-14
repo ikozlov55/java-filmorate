@@ -69,8 +69,28 @@ public class FilmService {
         return filmStorage.filmsPopular(count);
     }
 
-    public Collection<Film> filmSearch(String searchTitle) {
-        return filmStorage.filmSearch(searchTitle);
+    public Collection<Film> filmSearch(String searchTitle, String by) {
+        if (by == null || by.isEmpty()) {
+            throw new IllegalArgumentException("Film search by is required");
+        }
+        if (searchTitle == null || searchTitle.isEmpty()) {
+            throw new IllegalArgumentException("Film search title is required");
+        }
+        String[] searchParameters = searchTitle.split(",");
+        String[] byParameters = by.split(",");
+        String searchTitleValue = null;
+        String searchByValue = null;
+        if (byParameters[0].equals("director")) {
+            searchByValue = searchParameters[0];
+        } else if (byParameters[0].equals("title")) {
+            searchTitleValue = searchParameters[0];
+        }
+        if (byParameters.length == 2 && byParameters[1].equals("director")) {
+            searchByValue = searchParameters[1];
+        } else if (byParameters.length == 2 && byParameters[1].equals("title")) {
+            searchTitleValue = searchParameters[1];
+        }
+        return filmStorage.filmSearch(searchTitleValue, searchByValue);
     }
 
     public Collection<Film> getFilmsOfDirectors(int directorId, String sortBy) {

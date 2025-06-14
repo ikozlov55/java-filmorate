@@ -83,9 +83,4 @@ public abstract class InMemoryFilmStorage implements FilmStorage {
             throw new NotFoundException(reason);
         }
     }
-
-    @Override
-    public Collection<Film> filmSearch(String query) {
-        return List.of();
-    }
 }
