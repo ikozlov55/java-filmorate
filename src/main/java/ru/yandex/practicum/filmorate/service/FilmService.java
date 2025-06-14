@@ -3,9 +3,11 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
@@ -17,6 +19,7 @@ public class FilmService {
     private static final int DEFAULT_FILMS_POPULAR_COUNT = 10;
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final ReviewStorage reviewStorage;
 
     public Collection<Film> getAll() {
         return filmStorage.getAll();
@@ -45,9 +48,10 @@ public class FilmService {
         return updatedFilm;
     }
 
-
+    @Transactional
     public void delete(int filmId) {
         log.info("Film delete request received {}", filmId);
+        reviewStorage.deleteByFilmId(filmId);
         filmStorage.delete(filmId);
         log.info("Film deleted successfully: {}", filmId);
     }

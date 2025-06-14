@@ -9,6 +9,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.User;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -116,5 +117,52 @@ public class FilmorateApi {
 
     public ResultActions getAllMpa() throws Exception {
         return mockMvc.perform(get("/mpa"));
+    }
+
+    public ResultActions getAllReviews(Integer filmId, Integer count) throws Exception {
+        return mockMvc.perform(get("/reviews?filmId={filmId}&count={count}", filmId, count));
+    }
+
+    public ResultActions getReviewById(int reviewId) throws Exception {
+        return mockMvc.perform(get("/reviews/{reviewId}", reviewId));
+    }
+
+    public ResultActions create(Review review) throws Exception {
+        String body = objectMapper.writeValueAsString(review);
+        return mockMvc.perform(post("/reviews")
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+
+    public int createAndGetId(Review review) throws Exception {
+        MvcResult result = create(review).andReturn();
+        return JsonPath.read(result.getResponse().getContentAsString(), "$.reviewId");
+    }
+
+    public ResultActions update(Review review) throws Exception {
+        String body = objectMapper.writeValueAsString(review);
+        return mockMvc.perform(put("/reviews")
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+
+    public ResultActions deleteReview(int reviewId) throws Exception {
+        return mockMvc.perform(delete("/reviews/{reviewId}", reviewId));
+    }
+
+    public ResultActions addReviewLike(int reviewId, int userId) throws Exception {
+        return mockMvc.perform(put("/reviews/{reviewId}/like/{userId}", reviewId, userId));
+    }
+
+    public ResultActions addReviewDislike(int reviewId, int userId) throws Exception {
+        return mockMvc.perform(put("/reviews/{reviewId}/dislike/{userId}", reviewId, userId));
+    }
+
+    public ResultActions deleteReviewLike(int reviewId, int userId) throws Exception {
+        return mockMvc.perform(delete("/reviews/{reviewId}/like/{userId}", reviewId, userId));
+    }
+
+    public ResultActions deleteReviewDislike(int reviewId, int userId) throws Exception {
+        return mockMvc.perform(delete("/reviews/{reviewId}/dislike/{userId}", reviewId, userId));
     }
 }
