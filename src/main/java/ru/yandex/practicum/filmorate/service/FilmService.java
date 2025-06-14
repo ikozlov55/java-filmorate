@@ -9,7 +9,9 @@ import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -73,24 +75,17 @@ public class FilmService {
         if (by == null || by.isEmpty()) {
             throw new IllegalArgumentException("Film search by is required");
         }
-        if (searchTitle == null || searchTitle.equals(",")) {
+
+        if (searchTitle == null || searchTitle.isEmpty()) {
             return filmStorage.getAll();
         }
-        String[] searchParameters = searchTitle.split(",");
-        String[] byParameters = by.split(",");
-        String searchTitleValue = null;
-        String searchByValue = null;
-        if (byParameters[0].equals("director")) {
-            searchByValue = searchParameters[0];
-        } else if (byParameters[0].equals("title")) {
-            searchTitleValue = searchParameters[0];
-        }
-        if (byParameters.length == 2 && byParameters[1].equals("director")) {
-            searchByValue = searchParameters[1];
-        } else if (byParameters.length == 2 && byParameters[1].equals("title")) {
-            searchTitleValue = searchParameters[1];
-        }
-        return filmStorage.filmSearch(searchTitleValue, searchByValue);
+
+        boolean isDirectorSearch = by.contains("director");
+        boolean isTitleSearch = by.contains("title");
+
+        return filmStorage.filmSearch(searchTitle, isDirectorSearch, isTitleSearch).stream()
+                .sorted((film1, film2) -> Integer.compare(film2.getLikes(), film1.getLikes()))
+                .collect(Collectors.toList());
     }
 
     public Collection<Film> getFilmsOfDirectors(int directorId, String sortBy) {

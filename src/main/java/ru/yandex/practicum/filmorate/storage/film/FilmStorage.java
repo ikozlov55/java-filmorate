@@ -30,5 +30,5 @@ public interface FilmStorage {
 
     void checkFilmExists(int id);
 
-    Collection<Film> filmSearch(String searchTitle, String searchBy);
+    Collection<Film> filmSearch(String searchTitle, boolean isDirectorSearch, boolean isTitleSearch);
 }

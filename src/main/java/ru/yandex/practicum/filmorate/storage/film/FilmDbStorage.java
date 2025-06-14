@@ -186,22 +186,21 @@ COALESCE — это функция, которая возвращает перв
     }
 
     @Override
-    public Collection<Film> filmSearch(String searchTitle, String searchBy) {
-        if (searchTitle != null && !searchTitle.isEmpty() && searchBy != null && !searchBy.isEmpty()) {
+    public Collection<Film> filmSearch(String searchTitle, boolean isDirectorSearch, boolean isTitleSearch) {
+        if (searchTitle != null && !searchTitle.isEmpty() && isDirectorSearch && isTitleSearch) {
             String searchQuery = "%" + searchTitle + "%";
-            String searchByQuery = "%" + searchBy + "%";
-            String newQuery = String.format(SELECT_FILMS_QUERY, "WHERE LOWER(f.name) LIKE LOWER(?) AND LOWER(d.name) LIKE LOWER(?)", "");
-            return jdbcTemplate.query(newQuery, FilmMapper.getInstance(), searchQuery, searchByQuery);
-        } else if (searchTitle != null) {
+            String newQuery = String.format(SELECT_FILMS_QUERY, "WHERE LOWER(f.name) LIKE LOWER(?) OR LOWER(d.name) LIKE LOWER(?)", "");
+            return jdbcTemplate.query(newQuery, FilmMapper.getInstance(), searchQuery, searchQuery);
+        } else if (searchTitle != null && !searchTitle.isEmpty() && isTitleSearch) {
             String searchQuery = "%" + searchTitle + "%";
             String query = String.format(SELECT_FILMS_QUERY, "WHERE LOWER(f.name) LIKE LOWER(?)", "");
             return jdbcTemplate.query(query, FilmMapper.getInstance(), searchQuery);
-        } else if (searchBy != null) {
-            String searchByQuery = "%" + searchBy + "%";
+        } else if (searchTitle != null && !searchTitle.isEmpty() && isDirectorSearch) {
+            String searchByQuery = "%" + searchTitle + "%";
             String byQuery = String.format(SELECT_FILMS_QUERY, "WHERE LOWER(d.name) LIke LOWER(?)", "");
             return jdbcTemplate.query(byQuery, FilmMapper.getInstance(), searchByQuery);
         } else {
-            throw new IllegalArgumentException("searchBy or searchTitle cannot be null");
+            throw new IllegalArgumentException("searchBy cannot be null");
         }
     }
 

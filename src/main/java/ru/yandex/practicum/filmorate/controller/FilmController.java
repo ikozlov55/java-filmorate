@@ -57,8 +57,8 @@ public class FilmController {
     }
 
     @GetMapping("/search")
-    public Collection<Film> filmsSearch(@RequestParam String searchTitle, @RequestParam String by) {
-        return filmService.filmSearch(searchTitle, by);
+    public Collection<Film> filmsSearch(@RequestParam String query, @RequestParam String by) {
+        return filmService.filmSearch(query, by);
     }
 
     //Возвращает список фильмов режиссера отсортированных по количеству лайков или году выпуска
