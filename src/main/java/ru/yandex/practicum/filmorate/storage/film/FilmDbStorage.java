@@ -187,7 +187,7 @@ COALESCE — это функция, которая возвращает перв
 
     @Override
     public Collection<Film> filmSearch(String searchTitle, String searchBy) {
-        if (searchTitle != null && searchBy != null) {
+        if (searchTitle != null && !searchTitle.isEmpty() && searchBy != null && !searchBy.isEmpty()) {
             String searchQuery = "%" + searchTitle + "%";
             String searchByQuery = "%" + searchBy + "%";
             String newQuery = String.format(SELECT_FILMS_QUERY, "WHERE LOWER(f.name) LIKE LOWER(?) AND LOWER(d.name) LIKE LOWER(?)", "");

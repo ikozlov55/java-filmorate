@@ -73,8 +73,8 @@ public class FilmService {
         if (by == null || by.isEmpty()) {
             throw new IllegalArgumentException("Film search by is required");
         }
-        if (searchTitle == null || searchTitle.isEmpty()) {
-            throw new IllegalArgumentException("Film search title is required");
+        if (searchTitle == null || searchTitle.equals(",")) {
+            return filmStorage.getAll();
         }
         String[] searchParameters = searchTitle.split(",");
         String[] byParameters = by.split(",");
