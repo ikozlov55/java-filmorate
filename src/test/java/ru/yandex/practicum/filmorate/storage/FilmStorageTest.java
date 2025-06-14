@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.FilmorateJdbcConfig;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.director.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestDbStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
@@ -27,8 +28,15 @@ import java.util.List;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({FilmDbStorage.class, GenreDbStorage.class, MpaDbStorage.class, UserDbStorage.class,
-        FriendRequestDbStorage.class, FilmorateJdbcConfig.class})
+@Import({
+        FilmDbStorage.class,
+        GenreDbStorage.class,
+        MpaDbStorage.class,
+        UserDbStorage.class,
+        FriendRequestDbStorage.class,
+        FilmorateJdbcConfig.class,
+        DirectorDbStorage.class,
+})
 public class FilmStorageTest {
     private final FilmDbStorage filmStorage;
     private final UserDbStorage userStorage;
@@ -45,7 +53,7 @@ public class FilmStorageTest {
         Assertions.assertEquals(filmInput.getDescription(), film.getDescription());
         Assertions.assertEquals(filmInput.getReleaseDate(), film.getReleaseDate());
         Assertions.assertEquals(filmInput.getDuration(), film.getDuration());
-        Assertions.assertEquals(filmInput.getLikes(), film.getLikes());
+        Assertions.assertEquals(0, film.getLikes());
         TestUtils.compareGenres(filmInput, film);
         Assertions.assertEquals(filmInput.getMpa().getId(), film.getMpa().getId());
     }
@@ -134,10 +142,11 @@ public class FilmStorageTest {
     public void filmDelete() {
         Film filmInput = filmStorage.create(new FilmBuilder().build());
 
-        Film film = filmStorage.delete(filmInput);
+        int filmId = filmInput.getId();
 
-        Assertions.assertEquals(filmInput.getId(), film.getId());
-        Assertions.assertThrows(NotFoundException.class, () -> filmStorage.getById(film.getId()));
+        filmStorage.delete(filmId);
+
+        Assertions.assertThrows(NotFoundException.class, () -> filmStorage.getById(filmId));
     }
 
     @Test

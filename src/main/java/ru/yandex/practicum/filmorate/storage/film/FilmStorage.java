@@ -13,13 +13,20 @@ public interface FilmStorage {
 
     Film update(Film film);
 
-    Film delete(Film film);
+    void delete(int filmId);
 
     void addLike(int filmId, int userId);
 
     void deleteLike(int filmId, int userId);
 
     Collection<Film> filmsPopular(Integer count);
+
+    /*
+    GET /films/director/{directorId}?sortBy=[year,likes]
+    Возвращает список фильмов режиссера отсортированных по количеству лайков или году выпуска
+    Пример запроса: GET /films/director/1?sortBy=likes
+     */
+    Collection<Film> getFilmsOfDirectors(int directorId, String sortBy);
 
     void checkFilmExists(int id);
 

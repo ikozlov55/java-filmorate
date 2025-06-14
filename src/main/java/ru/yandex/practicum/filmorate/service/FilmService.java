@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -17,6 +18,7 @@ public class FilmService {
     private static final int DEFAULT_FILMS_POPULAR_COUNT = 10;
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final DirectorStorage directorStorage;
 
     public Collection<Film> getAll() {
         return filmStorage.getAll();
@@ -46,11 +48,10 @@ public class FilmService {
     }
 
 
-    public Film delete(Film film) {
-        log.info("Film delete request received {}", film);
-        Film deletedFilm = filmStorage.delete(film);
-        log.info("Film deleted successfully: {}", deletedFilm);
-        return deletedFilm;
+    public void delete(int filmId) {
+        log.info("Film delete request received {}", filmId);
+        filmStorage.delete(filmId);
+        log.info("Film deleted successfully: {}", filmId);
     }
 
     public void addLike(int filmId, int userId) {
@@ -70,5 +71,11 @@ public class FilmService {
 
     public Collection<Film> filmSearch(String searchTitle) {
         return filmStorage.filmSearch(searchTitle);
+    }
+
+    public Collection<Film> getFilmsOfDirectors(int directorId, String sortBy) {
+        directorStorage.getById(directorId);
+        log.info("Films of Directors sort by year or likes request received {}", directorStorage.getById(directorId));
+        return filmStorage.getFilmsOfDirectors(directorId, sortBy);
     }
 }
