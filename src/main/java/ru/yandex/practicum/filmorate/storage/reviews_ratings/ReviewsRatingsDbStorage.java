@@ -2,44 +2,28 @@ package ru.yandex.practicum.filmorate.storage.reviews_ratings;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Repository
 @RequiredArgsConstructor
 public class ReviewsRatingsDbStorage implements ReviewsRatingsStorage {
     private final JdbcTemplate jdbcTemplate;
-    private final SimpleJdbcInsert usersReviewsRatingsJdbcInsert;
+
+    @Override
+    public void upsert(int userId, int reviewId, int score) {
+        String query = """
+                MERGE INTO users_reviews_ratings (user_id, review_id, score)
+                       KEY (user_id, review_id)
+                    VALUES (?, ?, ?)
+                """;
+        jdbcTemplate.update(query, userId, reviewId, score);
+    }
 
     @Override
     public boolean userReviewRatingExists(int userId, int reviewId) {
         String query = "SELECT EXISTS (SELECT 1 FROM users_reviews_ratings WHERE user_id = ? AND review_id = ?)";
         Boolean exists = jdbcTemplate.queryForObject(query, Boolean.class, userId, reviewId);
         return exists != null && exists;
-    }
-
-    @Override
-    public void create(int userId, int reviewId, int score) {
-        Map<String, Object> argsMap = new HashMap<>();
-        argsMap.put("user_id", userId);
-        argsMap.put("review_id", reviewId);
-        argsMap.put("score", score);
-        usersReviewsRatingsJdbcInsert.execute(argsMap);
-        Boolean exists = userReviewRatingExists(userId, reviewId);
-        System.out.println(exists);
-    }
-
-    @Override
-    public void update(int userId, int reviewId, int score) {
-        jdbcTemplate.update("""
-                UPDATE users_reviews_ratings
-                   SET score = ?
-                 WHERE user_id = ?
-                   AND review_id = ?
-                """, score, userId, reviewId);
     }
 
     @Override

@@ -136,7 +136,7 @@ public class FilmorateApi {
 
     public int createAndGetId(Review review) throws Exception {
         MvcResult result = create(review).andReturn();
-        return JsonPath.read(result.getResponse().getContentAsString(), "$.id");
+        return JsonPath.read(result.getResponse().getContentAsString(), "$.reviewId");
     }
 
     public ResultActions update(Review review) throws Exception {

@@ -55,5 +55,6 @@ CREATE TABLE IF NOT EXISTS reviews (
 CREATE TABLE IF NOT EXISTS users_reviews_ratings (
     user_id int REFERENCES users (id),
     review_id int REFERENCES reviews (id),
-    score smallint NOT NULL
+    score smallint NOT NULL,
+    PRIMARY KEY (user_id, review_id)
 );

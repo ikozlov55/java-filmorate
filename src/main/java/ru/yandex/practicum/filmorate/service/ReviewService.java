@@ -37,7 +37,7 @@ public class ReviewService {
 
     public Review update(Review review) {
         log.info("Review update request received {}", review);
-        if (review.getId() == null) {
+        if (review.getReviewId() == null) {
             String reason = "id field is required";
             log.warn("Validation failed: {}", reason);
             throw new ValidationException(reason);

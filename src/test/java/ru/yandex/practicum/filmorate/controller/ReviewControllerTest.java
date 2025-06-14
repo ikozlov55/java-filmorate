@@ -35,7 +35,7 @@ public class ReviewControllerTest {
         int reviewId = filmorateApi.createAndGetId(review);
 
         filmorateApi.getReviewById(reviewId).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId))
+                .andExpect(jsonPath("$.reviewId").value(reviewId))
                 .andExpect(jsonPath("$.content").value(review.getContent()))
                 .andExpect(jsonPath("$.isPositive").value(review.getIsPositive()))
                 .andExpect(jsonPath("$.userId").value(review.getUserId()))
@@ -92,7 +92,7 @@ public class ReviewControllerTest {
         Review review = new ReviewBuilder().filmId(filmId).userId(userId).build();
 
         filmorateApi.create(review).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(greaterThan(0)))
+                .andExpect(jsonPath("$.reviewId").value(greaterThan(0)))
                 .andExpect(jsonPath("$.content").value(review.getContent()))
                 .andExpect(jsonPath("$.isPositive").value(review.getIsPositive()))
                 .andExpect(jsonPath("$.userId").value(review.getUserId()))
@@ -163,14 +163,14 @@ public class ReviewControllerTest {
         Review oldReview = new ReviewBuilder().filmId(filmId).userId(userId).isPositive(false).build();
         int reviewId = filmorateApi.createAndGetId(oldReview);
         Review review = new ReviewBuilder()
-                .id(reviewId)
+                .reviewId(reviewId)
                 .content("New content")
                 .isPositive(true)
                 .filmId(filmId)
                 .userId(userId).build();
 
         filmorateApi.update(review).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId))
+                .andExpect(jsonPath("$.reviewId").value(reviewId))
                 .andExpect(jsonPath("$.content").value(review.getContent()))
                 .andExpect(jsonPath("$.isPositive").value(review.getIsPositive()))
                 .andExpect(jsonPath("$.userId").value(review.getUserId()))
@@ -184,13 +184,13 @@ public class ReviewControllerTest {
         int userId = filmorateApi.createAndGetId(new UserBuilder().build());
         int reviewId = filmorateApi.createAndGetId(new ReviewBuilder().filmId(filmId).userId(userId).build());
         Review review = new ReviewBuilder()
-                .id(reviewId)
+                .reviewId(reviewId)
                 .useful(99)
                 .filmId(filmId)
                 .userId(userId).build();
 
         filmorateApi.update(review).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId))
+                .andExpect(jsonPath("$.reviewId").value(reviewId))
                 .andExpect(jsonPath("$.content").value(review.getContent()))
                 .andExpect(jsonPath("$.isPositive").value(review.getIsPositive()))
                 .andExpect(jsonPath("$.userId").value(review.getUserId()))
@@ -212,7 +212,7 @@ public class ReviewControllerTest {
     void idMustExistOnReviewUpdate() throws Exception {
         int filmId = filmorateApi.createAndGetId(new FilmBuilder().build());
         int userId = filmorateApi.createAndGetId(new UserBuilder().build());
-        Review review = new ReviewBuilder().id(999).filmId(filmId).userId(userId).build();
+        Review review = new ReviewBuilder().reviewId(999).filmId(filmId).userId(userId).build();
 
         filmorateApi.update(review).andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.reason").value("review with id 999 not found"));
@@ -226,9 +226,10 @@ public class ReviewControllerTest {
 
         filmorateApi.addReviewLike(reviewId, userId).andExpect(status().isOk());
         filmorateApi.getReviewById(reviewId).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId))
+                .andExpect(jsonPath("$.reviewId").value(reviewId))
                 .andExpect(jsonPath("$.useful").value(1));
     }
+
 
     @Test
     void repeatedAddLikeBySameUserDoesNotIncreaseUseful() throws Exception {
@@ -239,7 +240,7 @@ public class ReviewControllerTest {
         filmorateApi.addReviewLike(reviewId, userId).andExpect(status().isOk());
         filmorateApi.addReviewLike(reviewId, userId).andExpect(status().isOk());
         filmorateApi.getReviewById(reviewId).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId))
+                .andExpect(jsonPath("$.reviewId").value(reviewId))
                 .andExpect(jsonPath("$.useful").value(1));
     }
 
@@ -269,7 +270,7 @@ public class ReviewControllerTest {
 
         filmorateApi.addReviewDislike(reviewId, userId).andExpect(status().isOk());
         filmorateApi.getReviewById(reviewId).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId))
+                .andExpect(jsonPath("$.reviewId").value(reviewId))
                 .andExpect(jsonPath("$.useful").value(-1));
     }
 
@@ -282,7 +283,7 @@ public class ReviewControllerTest {
         filmorateApi.addReviewDislike(reviewId, userId).andExpect(status().isOk());
         filmorateApi.addReviewDislike(reviewId, userId).andExpect(status().isOk());
         filmorateApi.getReviewById(reviewId).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId))
+                .andExpect(jsonPath("$.reviewId").value(reviewId))
                 .andExpect(jsonPath("$.useful").value(-1));
     }
 
@@ -313,7 +314,7 @@ public class ReviewControllerTest {
         filmorateApi.addReviewLike(reviewId, userId).andExpect(status().isOk());
         filmorateApi.deleteReviewLike(reviewId, userId).andExpect(status().isOk());
         filmorateApi.getReviewById(reviewId).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId))
+                .andExpect(jsonPath("$.reviewId").value(reviewId))
                 .andExpect(jsonPath("$.useful").value(0));
     }
 
@@ -345,7 +346,7 @@ public class ReviewControllerTest {
         filmorateApi.addReviewDislike(reviewId, userId).andExpect(status().isOk());
         filmorateApi.deleteReviewDislike(reviewId, userId).andExpect(status().isOk());
         filmorateApi.getReviewById(reviewId).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reviewId))
+                .andExpect(jsonPath("$.reviewId").value(reviewId))
                 .andExpect(jsonPath("$.useful").value(0));
     }
 
@@ -366,5 +367,31 @@ public class ReviewControllerTest {
 
         filmorateApi.deleteReviewDislike(reviewId, 999).andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.reason").value("user with id 999 not found"));
+    }
+
+    @Test
+    void likeCanBeChangedToDislike() throws Exception {
+        int filmId = filmorateApi.createAndGetId(new FilmBuilder().build());
+        int userId = filmorateApi.createAndGetId(new UserBuilder().build());
+        int reviewId = filmorateApi.createAndGetId(new ReviewBuilder().filmId(filmId).userId(userId).build());
+
+        filmorateApi.addReviewLike(reviewId, userId);
+        filmorateApi.addReviewDislike(reviewId, userId);
+        filmorateApi.getReviewById(reviewId).andExpect(status().isOk())
+                .andExpect(jsonPath("$.reviewId").value(reviewId))
+                .andExpect(jsonPath("$.useful").value(-1));
+    }
+
+    @Test
+    void dislikeCanBeChangedToLike() throws Exception {
+        int filmId = filmorateApi.createAndGetId(new FilmBuilder().build());
+        int userId = filmorateApi.createAndGetId(new UserBuilder().build());
+        int reviewId = filmorateApi.createAndGetId(new ReviewBuilder().filmId(filmId).userId(userId).build());
+
+        filmorateApi.addReviewDislike(reviewId, userId);
+        filmorateApi.addReviewLike(reviewId, userId);
+        filmorateApi.getReviewById(reviewId).andExpect(status().isOk())
+                .andExpect(jsonPath("$.reviewId").value(reviewId))
+                .andExpect(jsonPath("$.useful").value(1));
     }
 }

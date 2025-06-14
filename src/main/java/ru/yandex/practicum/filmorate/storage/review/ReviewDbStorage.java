@@ -75,14 +75,14 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Review update(Review review) {
-        checkReviewExists(review.getId());
+        checkReviewExists(review.getReviewId());
         jdbcTemplate.update("""
                 UPDATE reviews
                    SET content = ?,
                        is_positive = ?
                  WHERE id = ?
-                """, review.getContent(), review.getIsPositive(), review.getId());
-        return getById(review.getId());
+                """, review.getContent(), review.getIsPositive(), review.getReviewId());
+        return getById(review.getReviewId());
     }
 
     @Override
@@ -113,20 +113,14 @@ public class ReviewDbStorage implements ReviewStorage {
     public void addLike(int reviewId, int userId) {
         checkReviewExists(reviewId);
         userStorage.checkUserExists(userId);
-        if (reviewsRatingsStorage.userReviewRatingExists(userId, reviewId)) {
-            return;
-        }
-        reviewsRatingsStorage.create(userId, reviewId, REVIEW_LIKE_SCORE);
+        reviewsRatingsStorage.upsert(userId, reviewId, REVIEW_LIKE_SCORE);
     }
 
     @Override
     public void addDislike(int reviewId, int userId) {
         checkReviewExists(reviewId);
         userStorage.checkUserExists(userId);
-        if (reviewsRatingsStorage.userReviewRatingExists(userId, reviewId)) {
-            return;
-        }
-        reviewsRatingsStorage.create(userId, reviewId, REVIEW_DISLIKE_SCORE);
+        reviewsRatingsStorage.upsert(userId, reviewId, REVIEW_DISLIKE_SCORE);
     }
 
     @Override

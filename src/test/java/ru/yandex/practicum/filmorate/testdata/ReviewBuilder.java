@@ -6,7 +6,7 @@ import ru.yandex.practicum.filmorate.model.Review;
 import java.util.Locale;
 
 public class ReviewBuilder {
-    private Integer id;
+    private Integer reviewId;
     private String content;
     private Boolean isPositive;
     private Integer userId;
@@ -19,8 +19,8 @@ public class ReviewBuilder {
         isPositive = faker.bool().bool();
     }
 
-    public ReviewBuilder id(int id) {
-        this.id = id;
+    public ReviewBuilder reviewId(int reviewId) {
+        this.reviewId = reviewId;
         return this;
     }
 
@@ -51,7 +51,7 @@ public class ReviewBuilder {
 
     public Review build() {
         Review review = new Review();
-        review.setId(id);
+        review.setReviewId(reviewId);
         review.setContent(content);
         review.setIsPositive(isPositive);
         review.setUserId(userId);
