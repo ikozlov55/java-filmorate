@@ -202,8 +202,7 @@ COALESCE — это функция, которая возвращает перв
             String searchByQuery = "%" + searchTitle + "%";
             String byQuery = String.format(SELECT_FILMS_QUERY, "WHERE LOWER(d.name) LIke LOWER(?)", "");
             return jdbcTemplate.query(byQuery, FilmMapper.getInstance(), searchByQuery);
-        }
-        else {
+        } else {
             throw new IllegalArgumentException("by can be: director or title");
         }
     }
