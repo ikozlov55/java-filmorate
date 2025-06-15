@@ -63,8 +63,8 @@ public class FilmService {
         filmStorage.deleteLike(filmId, userId);
     }
 
-    public Collection<Film> filmsPopular(Integer count) {
+    public Collection<Film> filmsPopular(Integer genreId, String year, Integer count) {
         count = count != null ? count : DEFAULT_FILMS_POPULAR_COUNT;
-        return filmStorage.filmsPopular(count);
+        return filmStorage.filmsPopular(genreId, year, count);
     }
 }
