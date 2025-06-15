@@ -10,7 +10,7 @@ import java.util.*;
 @Slf4j
 @Component
 @Deprecated
-public abstract class InMemoryFilmStorage implements FilmStorage{
+public abstract class InMemoryFilmStorage implements FilmStorage {
     private static int nextEntityId = 1;
     private final Map<Integer, Film> films = new HashMap<>();
     private final Map<Integer, Set<Integer>> filmsToUsersLiked = new HashMap<>();
@@ -75,6 +75,7 @@ public abstract class InMemoryFilmStorage implements FilmStorage{
                 .limit(count)
                 .toList();
     }
+
     @Override
     public void checkFilmExists(int id) {
         if (!films.containsKey(id)) {
