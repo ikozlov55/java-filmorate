@@ -187,20 +187,24 @@ COALESCE — это функция, которая возвращает перв
 
     @Override
     public Collection<Film> filmSearch(String searchTitle, boolean isDirectorSearch, boolean isTitleSearch) {
-        if (searchTitle != null && !searchTitle.isEmpty() && isDirectorSearch && isTitleSearch) {
+        if (searchTitle == null || searchTitle.isEmpty()) {
+            throw new IllegalArgumentException("searchTitle cannot be null or empty");
+        }
+        if (isDirectorSearch && isTitleSearch) {
             String searchQuery = "%" + searchTitle + "%";
             String newQuery = String.format(SELECT_FILMS_QUERY, "WHERE LOWER(f.name) LIKE LOWER(?) OR LOWER(d.name) LIKE LOWER(?)", "");
             return jdbcTemplate.query(newQuery, FilmMapper.getInstance(), searchQuery, searchQuery);
-        } else if (searchTitle != null && !searchTitle.isEmpty() && isTitleSearch) {
+        } else if (isTitleSearch) {
             String searchQuery = "%" + searchTitle + "%";
             String query = String.format(SELECT_FILMS_QUERY, "WHERE LOWER(f.name) LIKE LOWER(?)", "");
             return jdbcTemplate.query(query, FilmMapper.getInstance(), searchQuery);
-        } else if (searchTitle != null && !searchTitle.isEmpty() && isDirectorSearch) {
+        } else if (isDirectorSearch) {
             String searchByQuery = "%" + searchTitle + "%";
             String byQuery = String.format(SELECT_FILMS_QUERY, "WHERE LOWER(d.name) LIke LOWER(?)", "");
             return jdbcTemplate.query(byQuery, FilmMapper.getInstance(), searchByQuery);
-        } else {
-            throw new IllegalArgumentException("searchBy cannot be null");
+        }
+        else {
+            throw new IllegalArgumentException("by can be: director or title");
         }
     }
 
