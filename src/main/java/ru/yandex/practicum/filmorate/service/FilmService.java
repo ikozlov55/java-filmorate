@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -70,7 +71,6 @@ public class FilmService {
     }
 
     public Collection<Film> getFilmsOfDirectors(int directorId, String sortBy) {
-        directorStorage.getById(directorId);
         log.info("Films of Directors sort by year or likes request received {}", directorStorage.getById(directorId));
         return filmStorage.getFilmsOfDirectors(directorId, sortBy);
     }
