@@ -36,6 +36,11 @@ public class FilmController {
         return filmService.update(film);
     }
 
+    @DeleteMapping("/{filmId}")
+    public void delete(@PathVariable int filmId) {
+        filmService.delete(filmId);
+    }
+
     @PutMapping("/{filmId}/like/{userId}")
     public void addLike(@PathVariable int filmId, @PathVariable int userId) {
         filmService.addLike(filmId, userId);
@@ -51,6 +56,18 @@ public class FilmController {
         return filmService.filmsPopular(count);
     }
 
+    @GetMapping("/search")
+    public Collection<Film> filmsSearch(@RequestParam String query, @RequestParam String by) {
+        return filmService.filmSearch(query, by);
+    }
 
+    //Возвращает список фильмов режиссера отсортированных по количеству лайков или году выпуска
+    //Пример запроса: GET /films/director/1?sortBy=likes
+    @GetMapping("/director/{directorId}")
+    public Collection<Film> getFilmsOfDirectors(@PathVariable int directorId,
+                                                @RequestParam(name = "sortBy", defaultValue = "year")
+                                                String sortBy) {
+        return filmService.getFilmsOfDirectors(directorId, sortBy);
+    }
 }
 

@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
+
 public class InMemoryUserStorage implements UserStorage {
     private static int nextEntityId = 1;
     private final Map<Integer, User> users = new HashMap<>();
@@ -49,9 +50,8 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User delete(User user) {
-        checkUserExists(user.getId());
-        return users.remove(user.getId());
+    public void delete(int userId) {
+        checkUserExists(userId);
     }
 
     @Override

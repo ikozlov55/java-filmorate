@@ -5,10 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -17,6 +19,7 @@ public class FilmService {
     private static final int DEFAULT_FILMS_POPULAR_COUNT = 10;
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final DirectorStorage directorStorage;
 
     public Collection<Film> getAll() {
         return filmStorage.getAll();
@@ -46,11 +49,10 @@ public class FilmService {
     }
 
 
-    public Film delete(Film film) {
-        log.info("Film delete request received {}", film);
-        Film deletedFilm = filmStorage.delete(film);
-        log.info("Film deleted successfully: {}", deletedFilm);
-        return deletedFilm;
+    public void delete(int filmId) {
+        log.info("Film delete request received {}", filmId);
+        filmStorage.delete(filmId);
+        log.info("Film deleted successfully: {}", filmId);
     }
 
     public void addLike(int filmId, int userId) {
@@ -66,5 +68,27 @@ public class FilmService {
     public Collection<Film> filmsPopular(Integer count) {
         count = count != null ? count : DEFAULT_FILMS_POPULAR_COUNT;
         return filmStorage.filmsPopular(count);
+    }
+
+    public Collection<Film> filmSearch(String searchTitle, String by) {
+        if (by == null || by.isEmpty()) {
+            throw new IllegalArgumentException("Film search by is required");
+        }
+
+        if (searchTitle == null || searchTitle.isEmpty()) {
+            return filmStorage.getAll();
+        }
+
+        boolean isDirectorSearch = by.contains("director");
+        boolean isTitleSearch = by.contains("title");
+
+        return filmStorage.filmSearch(searchTitle, isDirectorSearch, isTitleSearch).stream()
+                .sorted((film1, film2) -> Integer.compare(film2.getLikes(), film1.getLikes()))
+                .collect(Collectors.toList());
+    }
+
+    public Collection<Film> getFilmsOfDirectors(int directorId, String sortBy) {
+        log.info("Films of Directors sort by year or likes request received {}", directorStorage.getById(directorId));
+        return filmStorage.getFilmsOfDirectors(directorId, sortBy);
     }
 }

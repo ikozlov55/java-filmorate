@@ -9,7 +9,8 @@ import java.util.*;
 
 @Slf4j
 @Component
-public class InMemoryFilmStorage implements FilmStorage {
+@Deprecated
+public abstract class InMemoryFilmStorage implements FilmStorage {
     private static int nextEntityId = 1;
     private final Map<Integer, Film> films = new HashMap<>();
     private final Map<Integer, Set<Integer>> filmsToUsersLiked = new HashMap<>();
@@ -42,9 +43,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film delete(Film film) {
-        checkFilmExists(film.getId());
-        return films.remove(film.getId());
+    public void delete(int filmId) {
+        checkFilmExists(filmId);
     }
 
     @Override

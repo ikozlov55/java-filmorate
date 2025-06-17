@@ -70,7 +70,6 @@ public class FilmControllerTest {
     @Test
     void filmCreate() throws Exception {
         Film film = new FilmBuilder().build();
-
         filmorateApi.create(film).andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.name").value(film.getName()))

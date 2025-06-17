@@ -49,11 +49,10 @@ public class UserService {
         return updatedUser;
     }
 
-    public User delete(User user) {
-        log.info("User delete request received {}", user);
-        User deletedUser = userStorage.delete(user);
-        log.info("User deleted successfully: {}", deletedUser);
-        return deletedUser;
+    public void delete(int userId) {
+        log.info("User delete request received {}", userId);
+        userStorage.delete(userId);
+        log.info("User deleted successfully: {}", userId);
     }
 
 
