@@ -55,5 +55,19 @@ public class FilmController {
     public Collection<Film> filmsPopular(@RequestParam(required = false) Integer count) {
         return filmService.filmsPopular(count);
     }
+
+    @GetMapping("/search")
+    public Collection<Film> filmsSearch(@RequestParam String query, @RequestParam String by) {
+        return filmService.filmSearch(query, by);
+    }
+
+    //Возвращает список фильмов режиссера отсортированных по количеству лайков или году выпуска
+    //Пример запроса: GET /films/director/1?sortBy=likes
+    @GetMapping("/director/{directorId}")
+    public Collection<Film> getFilmsOfDirectors(@PathVariable int directorId,
+                                                @RequestParam(name = "sortBy", defaultValue = "year")
+                                                String sortBy) {
+        return filmService.getFilmsOfDirectors(directorId, sortBy);
+    }
 }
 
