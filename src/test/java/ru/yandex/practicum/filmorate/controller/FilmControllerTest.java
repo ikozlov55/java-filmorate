@@ -8,7 +8,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.web.servlet.ResultActions;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.testdata.FilmBuilder;
 import ru.yandex.practicum.filmorate.testdata.FilmorateApi;
@@ -71,7 +70,6 @@ public class FilmControllerTest {
     @Test
     void filmCreate() throws Exception {
         Film film = new FilmBuilder().build();
-        ResultActions ret = filmorateApi.create(film);
         filmorateApi.create(film).andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.name").value(film.getName()))

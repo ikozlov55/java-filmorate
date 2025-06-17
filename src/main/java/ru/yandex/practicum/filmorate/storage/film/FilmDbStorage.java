@@ -230,7 +230,7 @@ COALESCE — это функция, которая возвращает перв
 
     /* Метод setFilmDirectors связывает фильм с его режиссерами в базе данных.
      Вставляя соответствующие записи в таблицу films_directors.
-     */
+    */
     private void setFilmDirectors(int filmId, Set<Director> directors) {
         List<Director> directorsList = directors.stream().toList();
         //используется для выполнения пакетного обновления (вставки) данных в таблицу films_directors.

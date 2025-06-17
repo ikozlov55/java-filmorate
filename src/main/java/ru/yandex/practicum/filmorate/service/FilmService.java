@@ -88,7 +88,6 @@ public class FilmService {
     }
 
     public Collection<Film> getFilmsOfDirectors(int directorId, String sortBy) {
-        directorStorage.getById(directorId);
         log.info("Films of Directors sort by year or likes request received {}", directorStorage.getById(directorId));
         return filmStorage.getFilmsOfDirectors(directorId, sortBy);
     }
