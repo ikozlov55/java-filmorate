@@ -1,0 +1,33 @@
+<configuration debug="false">
+    <include resource="/org/springframework/boot/logging/logback/base.xml"/>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%X{user}] [%X{function}] [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="appFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>app.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${app.logPathPrefix}/myproject.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>10</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%level] [%thread] [%logger:%line] %msg%n</pattern>
+        </encoder>
+    </appender>
+    <logger name="org.springframework" level="ERROR"/>
+    <logger name="ru.yandex.practicum" level="INFO"/>
+    <root level="info">
+        <!--  <appender-ref ref="STDOUT" />  -->
+        <appender-ref ref="appFILE"/>
+    </root>
+    <springProfile name="dev">
+        <logger name="ru.yandex.practicum" level="info"/>
+    </springProfile>
+    <springProfile name="test">
+        <logger name="ru.yandex.practicum" level="trace"/>
+    </springProfile>
+</configuration>
