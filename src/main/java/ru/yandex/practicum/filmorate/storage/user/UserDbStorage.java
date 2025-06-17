@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +30,7 @@ public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FriendRequestStorage friendRequestStorage;
     private final SimpleJdbcInsert usersJdbcInsert;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private static final String SELECT_FILMS_QUERY = """
             SELECT id,
@@ -187,47 +191,62 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<Film> getRecommendations(int userId) {
-        String query = """
-                    SELECT f.id,
-                           f.name,
-                           f.description,
-                           f.release_date,
-                           f.duration,
-                           f.mpa_id,
-                           m.name AS mpa_name,
-                           COUNT(ufl.film_id) AS likes,
-                           COALESCE(group_concat(fg.genre_id separator ','), '') AS genres_ids,
-                           COALESCE(group_concat(g.name separator ','), '') AS genres_names
-                      FROM films f
-                      JOIN mpa m ON f.mpa_id = m.id
-                 LEFT JOIN users_films_likes ufl ON f.id = ufl.film_id
-                 LEFT JOIN films_genres fg ON f.id = fg.film_id
-                 LEFT JOIN genres g ON fg.genre_id = g.id
-                           %s
-                     GROUP BY f.id
-                           %s
+        String queryUserEachLike = """
+                    SELECT u2.user_id
+                    FROM users_films_likes u1
+                    JOIN users_films_likes u2 ON u1.film_id = u2.film_id
+                    WHERE u1.user_id = ?
+                    AND u2.user_id != ?
+                    GROUP BY u2.user_id
+                    ORDER BY COUNT(u1.film_id) DESC
+                    LIMIT 1
                 """;
-        Collection<Film> userFilmsLikes = jdbcTemplate.query(String.format(query, "where ufl.user_id = ?", ""), FilmMapper.getInstance(), userId);
-        Collection<User> users = getAll();
-        users.remove(getById(userId));
-        Map<User, Integer> usersLikes = new HashMap<>();
-        for (Film film : userFilmsLikes) {
-            for (User u : users) {
-                Collection<Film> films = jdbcTemplate.query(String.format(query, "where ufl.user_id = ?", ""), FilmMapper.getInstance(), u.getId());
-                if (films.contains(film)) {
-                    if (usersLikes.containsKey(u)) {
-                        usersLikes.put(u, usersLikes.get(u) + 1);
-                        continue;
-                    }
-                    usersLikes.put(u, 1);
-                }
-            }
-        }
-        for (Map.Entry<User, Integer> entry : usersLikes.entrySet()) {
-            User key = entry.getKey();
-            Integer value = entry.getValue();
-            log.info("Key: " + key + ", Value: " + value);
-        }
-        return userFilmsLikes;
+        List<Integer> userIdEachLikesFilms = jdbcTemplate.queryForList(queryUserEachLike, Integer.class, userId, userId);
+
+        String queryForUserLikeFilm = """
+                    SELECT DISTINCT ufl1.film_id
+                    FROM users_films_likes ufl1
+                    WHERE ufl1.user_id = ?
+                    AND NOT EXISTS (
+                        SELECT 1
+                        FROM users_films_likes ufl2
+                        WHERE ufl2.user_id = ? AND ufl2.film_id = ufl1.film_id
+                    )
+                """;
+        List<Integer> filmIdUserNotLike = jdbcTemplate.queryForList(queryForUserLikeFilm, Integer.class, userIdEachLikesFilms.get(0), userId);
+
+        String queryForRecommendedFilms = """
+                    SELECT
+                        f.id,
+                        f.name,
+                        f.description,
+                        f.release_date,
+                        f.duration,
+                        f.mpa_id,
+                        m.name AS mpa_name,
+                        COUNT(ufl.film_id) AS likes,
+                        COALESCE(LISTAGG(DISTINCT fg.genre_id, ','), '') AS genres_ids,
+                        COALESCE(LISTAGG(DISTINCT g.name, ','), '') AS genres_names
+                    FROM
+                        films f
+                    JOIN
+                        mpa m ON f.mpa_id = m.id
+                    LEFT JOIN
+                        users_films_likes ufl ON f.id = ufl.film_id
+                    LEFT JOIN
+                        films_genres fg ON f.id = fg.film_id
+                    LEFT JOIN
+                        genres g ON fg.genre_id = g.id
+                    WHERE
+                        f.id IN (:filmIds)
+                    GROUP BY
+                        f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, m.name
+                    ORDER BY
+                        likes DESC
+                """;
+
+        SqlParameterSource params = new MapSqlParameterSource("filmIds", filmIdUserNotLike);
+
+        return namedParameterJdbcTemplate.query(queryForRecommendedFilms, params, FilmMapper.getInstance());
     }
 }
