@@ -188,7 +188,7 @@ COALESCE — это функция, которая возвращает перв
                        FROM users_films_likes
                       WHERE user_id = ?)
                 )
-                """, "ORDER BY LIKES DESC");
+                """, "ORDER BY likes DESC");
         return jdbcTemplate.query(query, FilmMapper.getInstance(), userId, friendId);
     }
 
