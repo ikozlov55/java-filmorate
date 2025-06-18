@@ -35,4 +35,10 @@ public class FilmorateJdbcConfig {
     public SimpleJdbcInsert friendsRequestsJdbcInsert(JdbcTemplate jdbcTemplate) {
         return new SimpleJdbcInsert(jdbcTemplate).withTableName("users_friends_requests");
     }
+
+    @Bean
+    public SimpleJdbcInsert reviewsJdbcInsert(JdbcTemplate jdbcTemplate) {
+        return new SimpleJdbcInsert(jdbcTemplate).withTableName("reviews")
+                .usingGeneratedKeyColumns("id");
+    }
 }

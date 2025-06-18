@@ -168,9 +168,29 @@ COALESCE — это функция, которая возвращает перв
                 """, filmId, userId);
     }
 
+
+    /*
+        GET /films/popular?count={limit}&genreId={genreId}&year={year}
+        Возвращает список топ-N фильмов по количеству лайков указанного жанра за нужный год.
+    */
     @Override
-    public Collection<Film> filmsPopular(Integer count) {
-        String query = String.format(SELECT_FILMS_QUERY, "", String.format("ORDER BY likes DESC LIMIT %d", count));
+    public Collection<Film> filmsPopular(Integer genreId, String year, Integer count) {
+        String requirementOrder = String.format(
+                "ORDER BY likes DESC LIMIT %d ", count);
+        String requirement = String.format(
+                "WHERE genre_id = %d AND EXTRACT(YEAR FROM release_date) = '%s' ",
+                genreId, year);
+
+        if (year == null && genreId != null) {
+            requirement = String.format("WHERE genre_id = %d ", genreId);
+        }
+        if (year != null && genreId == null) {
+            requirement = String.format("WHERE EXTRACT(YEAR FROM release_date) = '%s' ", year);
+        }
+        if (year == null && genreId == null) {
+            requirement = "";
+        }
+        String query = String.format(SELECT_FILMS_QUERY, requirement, requirementOrder);
         return jdbcTemplate.query(query, FilmMapper.getInstance());
     }
 

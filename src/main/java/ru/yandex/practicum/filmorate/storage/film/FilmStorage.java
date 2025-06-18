@@ -19,7 +19,7 @@ public interface FilmStorage {
 
     void deleteLike(int filmId, int userId);
 
-    Collection<Film> filmsPopular(Integer count);
+    Collection<Film> filmsPopular(Integer genreId, String year, Integer count);
 
     Collection<Film> filmsCommon(int userId, int friendId);
 
