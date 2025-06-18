@@ -17,6 +17,7 @@ import ru.yandex.practicum.filmorate.storage.film.FilmMapper;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestStatus;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestStorage;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -189,14 +190,12 @@ public class UserDbStorage implements UserStorage {
         }
     }
 
-    @Override
     public Collection<Film> getRecommendations(int userId) {
         String queryUserEachLike = """
                     SELECT u2.user_id
                     FROM users_films_likes u1
                     JOIN users_films_likes u2 ON u1.film_id = u2.film_id
-                    WHERE u1.user_id = ?
-                    AND u2.user_id != ?
+                    WHERE u1.user_id = ? AND u2.user_id != ?
                     GROUP BY u2.user_id
                     ORDER BY COUNT(u1.film_id) DESC
                     LIMIT 1
@@ -226,7 +225,9 @@ public class UserDbStorage implements UserStorage {
                         m.name AS mpa_name,
                         COUNT(ufl.film_id) AS likes,
                         COALESCE(LISTAGG(DISTINCT fg.genre_id, ','), '') AS genres_ids,
-                        COALESCE(LISTAGG(DISTINCT g.name, ','), '') AS genres_names
+                        COALESCE(LISTAGG(DISTINCT g.name, ','), '') AS genres_names,
+                        COALESCE(LISTAGG(DISTINCT fd.director_id, ','), '') AS directors_ids,
+                        COALESCE(LISTAGG(DISTINCT d.name, ','), '') AS directors_names
                     FROM
                         films f
                     JOIN
@@ -237,6 +238,10 @@ public class UserDbStorage implements UserStorage {
                         films_genres fg ON f.id = fg.film_id
                     LEFT JOIN
                         genres g ON fg.genre_id = g.id
+                    LEFT JOIN
+                        films_directors fd ON f.id = fd.film_id
+                    LEFT JOIN
+                        directors d ON fd.director_id = d.id
                     WHERE
                         f.id IN (:filmIds)
                     GROUP BY
@@ -245,7 +250,7 @@ public class UserDbStorage implements UserStorage {
                         likes DESC
                 """;
 
-        SqlParameterSource params = new MapSqlParameterSource("filmIds", filmIdUserNotLike);
+        MapSqlParameterSource params = new MapSqlParameterSource("filmIds", filmIdUserNotLike);
 
         return namedParameterJdbcTemplate.query(queryForRecommendedFilms, params, FilmMapper.getInstance());
     }
