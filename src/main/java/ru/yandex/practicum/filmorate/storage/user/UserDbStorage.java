@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static ru.yandex.practicum.filmorate.storage.film.FilmDbStorage.SELECT_FILMS_QUERY;
+
 @Repository
 @Primary
 @RequiredArgsConstructor
@@ -210,6 +212,10 @@ public class UserDbStorage implements UserStorage {
                         WHERE ufl2.user_id = ? AND ufl2.film_id = ufl1.film_id
                     )
                 """;
+        if (userIdEachLikesFilms.isEmpty()) {
+            String query = String.format(SELECT_FILMS_QUERY, "", "ORDER BY likes DESC");
+            return jdbcTemplate.query(query, FilmMapper.getInstance());
+        }
         List<Integer> filmIdUserNotLike = jdbcTemplate.queryForList(queryForUserLikeFilm, Integer.class, userIdEachLikesFilms.get(0), userId);
 
         String queryForRecommendedFilms = """

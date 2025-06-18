@@ -20,8 +20,11 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.*;
-
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Repository
 @Primary
@@ -45,7 +48,7 @@ COALESCE — это функция, которая возвращает перв
  Если результат GROUP_CONCAT окажется пустым (например, если для фильма нет жанров),
  COALESCE вернёт пустую строку ''.
      */
-    private static final String SELECT_FILMS_QUERY = """
+    public static final String SELECT_FILMS_QUERY = """
                 SELECT f.id,
                        f.name,
                        f.description,
