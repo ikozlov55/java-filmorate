@@ -220,10 +220,6 @@ public class UserDbStorage implements UserStorage {
 
         List<Integer> filmIdUserNotLike = jdbcTemplate.queryForList(queryForUserLikeFilm, Integer.class, userIdEachLikesFilms.get(0), userId);
 
-        if (filmIdUserNotLike.isEmpty()) {
-            String query = String.format(SELECT_FILMS_QUERY, "", "ORDER BY likes DESC");
-            return jdbcTemplate.query(query, FilmMapper.getInstance());
-        }
         String queryForRecommendedFilms = """
                     SELECT
                         f.id,
