@@ -328,5 +328,4 @@ public class FilmControllerTest {
                 .andExpect(jsonPath("$[3].likes").value(usersCount - 3))
                 .andExpect(jsonPath("$[4].likes").value(usersCount - 4));
     }
-
 }

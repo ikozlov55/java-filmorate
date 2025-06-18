@@ -68,7 +68,7 @@ public abstract class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> filmsPopular(Integer count) {
+    public Collection<Film> filmsPopular(Integer genreId, String year, Integer count) {
         return films.values().stream()
                 .sorted(Comparator.comparing(Film::getLikes).reversed())
                 .limit(count)

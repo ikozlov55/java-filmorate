@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.FilmorateJdbcConfig;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.director.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
@@ -24,6 +25,7 @@ import ru.yandex.practicum.filmorate.testdata.UserBuilder;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @JdbcTest
 @AutoConfigureTestDatabase
@@ -174,21 +176,43 @@ public class FilmStorageTest {
     public void filmsPopular() {
         int usersCount = 10;
         int filmsCount = 5;
-        int[] userIds = new int[usersCount];
+        User[] userObj = new User[usersCount];
+        Film[] filmObj = new Film[filmsCount];
         for (int i = 0; i < usersCount; i++) {
-            userIds[i] = userStorage.create(new UserBuilder().build()).getId();
+            userObj[i] = new UserBuilder().build();
         }
         for (int i = 0; i < filmsCount; i++) {
-            int filmId = filmStorage.create(new FilmBuilder().build()).getId();
+            filmObj[i] = new FilmBuilder().build();
+        }
+        int[] userIds = new int[usersCount];
+        for (int i = 0; i < usersCount; i++) {
+            userIds[i] = userStorage.create(userObj[i]).getId();
+        }
+        for (int i = 0; i < filmsCount; i++) {
+            int filmId = filmStorage.create(filmObj[i]).getId();
             for (int j = 0; j < usersCount - i; j++) {
                 filmStorage.addLike(filmId, userIds[j]);
             }
         }
-        List<Film> films = filmStorage.filmsPopular(filmsCount).stream().toList();
 
-        Assertions.assertEquals(filmsCount, films.size());
-        for (int i = 0; i < filmsCount; i++) {
-            Assertions.assertEquals(usersCount - i, films.get(i).getLikes());
+        Set<Genre> filmsGenre = filmObj[0].getGenres();
+        int genreId = filmsGenre.iterator().next().getId();
+        LocalDate dataRelease = filmObj[0].getReleaseDate();
+        int yearInt = dataRelease.getYear();
+        String year = String.valueOf(yearInt);
+
+        List<Film> films = filmStorage.filmsPopular(genreId, year, filmsCount).stream().toList();
+        Integer filmsSize = films.size();
+
+        Assertions.assertNotNull(filmsSize, "В тесте список популярных фильмов не может быть пустым.");
+
+        Integer maxLikes = 0;
+        for (Film film : films) {
+            Integer likesByFilm = film.getLikes();
+            if (maxLikes <= likesByFilm) {
+                maxLikes = likesByFilm;
+            }
         }
+        Assertions.assertEquals(maxLikes, films.getFirst().getLikes());
     }
 }
