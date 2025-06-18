@@ -70,7 +70,6 @@ public class FilmControllerTest {
     @Test
     void filmCreate() throws Exception {
         Film film = new FilmBuilder().build();
-
         filmorateApi.create(film).andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.name").value(film.getName()))
@@ -329,5 +328,4 @@ public class FilmControllerTest {
                 .andExpect(jsonPath("$[3].likes").value(usersCount - 3))
                 .andExpect(jsonPath("$[4].likes").value(usersCount - 4));
     }
-
 }

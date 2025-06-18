@@ -3,8 +3,10 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
@@ -14,6 +16,7 @@ import java.util.Collection;
 @Service
 public class UserService {
     private final UserStorage userStorage;
+    private final ReviewStorage reviewStorage;
 
     public Collection<User> getAll() {
         return userStorage.getAll();
@@ -48,11 +51,12 @@ public class UserService {
         return updatedUser;
     }
 
-    public User delete(User user) {
-        log.info("User delete request received {}", user);
-        User deletedUser = userStorage.delete(user);
-        log.info("User deleted successfully: {}", deletedUser);
-        return deletedUser;
+    @Transactional
+    public void delete(int userId) {
+        log.info("User delete request received {}", userId);
+        reviewStorage.deleteByUserId(userId);
+        userStorage.delete(userId);
+        log.info("User deleted successfully: {}", userId);
     }
 
 

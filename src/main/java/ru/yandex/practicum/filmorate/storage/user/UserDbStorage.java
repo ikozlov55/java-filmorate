@@ -25,7 +25,7 @@ public class UserDbStorage implements UserStorage {
     private final FriendRequestStorage friendRequestStorage;
     private final SimpleJdbcInsert usersJdbcInsert;
 
-    private static final String SELECT_FILMS_QUERY = """
+    private static final String SELECT_USERS_QUERY = """
             SELECT id,
                    email,
                    login,
@@ -37,13 +37,13 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<User> getAll() {
-        return jdbcTemplate.query(String.format(SELECT_FILMS_QUERY, ""), UserMapper.getInstance());
+        return jdbcTemplate.query(String.format(SELECT_USERS_QUERY, ""), UserMapper.getInstance());
     }
 
     @Override
     public User getById(int id) {
         checkUserExists(id);
-        return jdbcTemplate.queryForObject(String.format(SELECT_FILMS_QUERY, "WHERE id = ?"), UserMapper.getInstance(), id);
+        return jdbcTemplate.queryForObject(String.format(SELECT_USERS_QUERY, "WHERE id = ?"), UserMapper.getInstance(), id);
     }
 
     @Override
@@ -74,12 +74,12 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     @Transactional
-    public User delete(User user) {
-        checkUserExists(user.getId());
-        jdbcTemplate.update("DELETE FROM users_films_likes WHERE user_id = ?", user.getId());
-        jdbcTemplate.update("DELETE FROM users_friends_requests WHERE user_id = ?", user.getId());
-        jdbcTemplate.update("DELETE FROM users WHERE id = ?", user.getId());
-        return user;
+    public void delete(int userId) {
+        checkUserExists(userId);
+        jdbcTemplate.update("DELETE FROM users_films_likes WHERE user_id = ?", userId);
+        jdbcTemplate.update("DELETE FROM users_friends_requests WHERE user_id = ?", userId);
+        jdbcTemplate.update("DELETE FROM users_friends_requests WHERE friend_id = ?", userId);
+        jdbcTemplate.update("DELETE FROM users WHERE id = ?", userId);
     }
 
     @Override
@@ -126,7 +126,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public Collection<User> getFriends(int userId) {
         checkUserExists(userId);
-        String query = String.format(SELECT_FILMS_QUERY, """
+        String query = String.format(SELECT_USERS_QUERY, """
                 WHERE id IN (
                      SELECT friend_id
                        FROM users_friends_requests
@@ -146,7 +146,7 @@ public class UserDbStorage implements UserStorage {
     public Collection<User> getCommonFriends(int userId, int otherId) {
         checkUserExists(userId);
         checkUserExists(otherId);
-        String query = String.format(SELECT_FILMS_QUERY, """
+        String query = String.format(SELECT_USERS_QUERY, """
                 WHERE id IN (
                      (SELECT friend_id
                        FROM users_friends_requests
