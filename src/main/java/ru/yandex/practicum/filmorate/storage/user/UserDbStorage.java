@@ -198,25 +198,35 @@ public class UserDbStorage implements UserStorage {
                     WHERE u1.user_id = ? AND u2.user_id != ?
                     GROUP BY u2.user_id
                     ORDER BY COUNT(u1.film_id) DESC
-                    LIMIT 1
                 """;
         List<Integer> userIdEachLikesFilms = jdbcTemplate.queryForList(queryUserEachLike, Integer.class, userId, userId);
 
-        String queryForUserLikeFilm = """
-                    SELECT DISTINCT ufl1.film_id
-                    FROM users_films_likes ufl1
-                    WHERE ufl1.user_id = ?
-                    AND NOT EXISTS (
-                        SELECT 1
-                        FROM users_films_likes ufl2
-                        WHERE ufl2.user_id = ? AND ufl2.film_id = ufl1.film_id
-                    )
-                """;
+        String query = String.format(SELECT_FILMS_QUERY, "", "ORDER BY likes DESC");
         if (userIdEachLikesFilms.isEmpty()) {
-            String query = String.format(SELECT_FILMS_QUERY, "", "ORDER BY likes DESC");
             return jdbcTemplate.query(query, FilmMapper.getInstance());
         }
-        List<Integer> filmIdUserNotLike = jdbcTemplate.queryForList(queryForUserLikeFilm, Integer.class, userIdEachLikesFilms.get(0), userId);
+        List<Integer> filmIdUserNotLike;
+        int count = 0;
+        do {
+            String queryForUserLikeFilm = """
+                        SELECT DISTINCT ufl1.film_id
+                        FROM users_films_likes ufl1
+                        WHERE ufl1.user_id = ?
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM users_films_likes ufl2
+                            WHERE ufl2.user_id = ? AND ufl2.film_id = ufl1.film_id
+                        )
+                    """;
+
+            filmIdUserNotLike = jdbcTemplate.queryForList(queryForUserLikeFilm, Integer.class, userIdEachLikesFilms.get(count), userId);
+            count++;
+
+            if (count == userIdEachLikesFilms.size() && filmIdUserNotLike.isEmpty()) {
+                return jdbcTemplate.query(query, FilmMapper.getInstance());
+            }
+
+        } while (filmIdUserNotLike.isEmpty());
 
         String queryForRecommendedFilms = """
                     SELECT
