@@ -103,6 +103,10 @@ public class FilmorateApi {
         return mockMvc.perform(get("/films/popular?count={count}", count));
     }
 
+    public ResultActions filmsCommon(int userId, int friendId) throws Exception {
+        return mockMvc.perform(get("/films/common?userId={userId}&friendId={friendId}", userId, friendId));
+    }
+
     public ResultActions getGenreById(int genreId) throws Exception {
         return mockMvc.perform(get("/genres/{genreId}", genreId));
     }

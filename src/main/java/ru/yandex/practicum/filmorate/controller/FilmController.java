@@ -60,6 +60,12 @@ public class FilmController {
         return filmService.filmsPopular(genreId, year, count);
     }
 
+
+    @GetMapping("/common")
+    public Collection<Film> filmsCommon(@RequestParam int userId, @RequestParam int friendId) {
+        return filmService.filmsCommon(userId, friendId);
+    }
+
     @GetMapping("/search")
     public Collection<Film> filmsSearch(@RequestParam String query, @RequestParam String by) {
         return filmService.filmSearch(query, by);
@@ -72,6 +78,7 @@ public class FilmController {
                                                 @RequestParam(name = "sortBy", defaultValue = "year")
                                                 String sortBy) {
         return filmService.getFilmsOfDirectors(directorId, sortBy);
+
     }
 }
 

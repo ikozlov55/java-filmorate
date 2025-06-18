@@ -75,6 +75,11 @@ public class FilmService {
         return filmStorage.filmsPopular(genreId, year, count);
     }
 
+
+    public Collection<Film> filmsCommon(int userId, int friendId) {
+        return filmStorage.filmsCommon(userId, friendId);
+    }
+
     public Collection<Film> filmSearch(String searchTitle, String by) {
         if (by == null || by.isEmpty()) {
             throw new IllegalArgumentException("Film search by is required");

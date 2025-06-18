@@ -195,6 +195,24 @@ COALESCE — это функция, которая возвращает перв
     }
 
     @Override
+    public Collection<Film> filmsCommon(int userId, int friendId) {
+        userStorage.checkUserExists(userId);
+        userStorage.checkUserExists(friendId);
+        String query = String.format(SELECT_FILMS_QUERY, """
+                WHERE f.id IN (
+                    (SELECT film_id
+                       FROM users_films_likes
+                      WHERE user_id = ?)
+                  INTERSECT
+                    (SELECT film_id
+                       FROM users_films_likes
+                      WHERE user_id = ?)
+                )
+                """, "ORDER BY likes DESC");
+        return jdbcTemplate.query(query, FilmMapper.getInstance(), userId, friendId);
+    }
+
+    @Override
     public void checkFilmExists(int id) {
         String query = "SELECT EXISTS (SELECT 1 FROM films WHERE id = ?)";
         Boolean exists = jdbcTemplate.queryForObject(query, Boolean.class, id);

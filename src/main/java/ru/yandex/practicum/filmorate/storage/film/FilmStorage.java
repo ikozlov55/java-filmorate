@@ -21,6 +21,8 @@ public interface FilmStorage {
 
     Collection<Film> filmsPopular(Integer genreId, String year, Integer count);
 
+    Collection<Film> filmsCommon(int userId, int friendId);
+
     /*
     GET /films/director/{directorId}?sortBy=[year,likes]
     Возвращает список фильмов режиссера отсортированных по количеству лайков или году выпуска
