@@ -82,9 +82,13 @@ public class ReviewDbStorage implements ReviewStorage {
     @Override
     public Review update(Review review) {
         checkReviewExists(review.getReviewId());
-        Integer oldReviewUserId = (review.getReviewId());
-        userStorage.checkUserExists(oldReviewUserId);
-        feedDbStorage.addEvent(new FeedEvent(oldReviewUserId, FeedEvent.EventType.REVIEW, FeedEvent.Operation.UPDATE, review.getReviewId()));
+        Integer originalUserId = jdbcTemplate.queryForObject(
+                "SELECT user_id FROM reviews WHERE id = ?",
+                Integer.class,
+                review.getReviewId()
+        );
+        userStorage.checkUserExists(originalUserId);
+        feedDbStorage.addEvent(new FeedEvent(originalUserId, FeedEvent.EventType.REVIEW, FeedEvent.Operation.UPDATE, review.getReviewId()));
 
         jdbcTemplate.update("""
                 UPDATE reviews
