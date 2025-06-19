@@ -81,8 +81,9 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Review update(Review review) {
-        feedDbStorage.addEvent(new FeedEvent(review.getUserId(), FeedEvent.EventType.REVIEW, FeedEvent.Operation.UPDATE, review.getReviewId()));
         checkReviewExists(review.getReviewId());
+        Integer oldReviewUserId = (review.getReviewId());
+        feedDbStorage.addEvent(new FeedEvent(oldReviewUserId, FeedEvent.EventType.REVIEW, FeedEvent.Operation.UPDATE, review.getReviewId()));
 
         jdbcTemplate.update("""
                 UPDATE reviews
