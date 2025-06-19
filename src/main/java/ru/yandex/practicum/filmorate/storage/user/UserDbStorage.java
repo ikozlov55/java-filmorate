@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,12 +13,19 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.FeedEvent;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.feed.FeedDbStorage;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.film.FilmMapper;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestStatus;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestStorage;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static ru.yandex.practicum.filmorate.storage.film.FilmDbStorage.SELECT_FILMS_QUERY;
 
 @Repository
 @Primary
@@ -27,6 +36,7 @@ public class UserDbStorage implements UserStorage {
     private final FriendRequestStorage friendRequestStorage;
     private final SimpleJdbcInsert usersJdbcInsert;
     private final FeedDbStorage feedDbStorage;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private static final String SELECT_USERS_QUERY = """
             SELECT id,
@@ -194,5 +204,44 @@ public class UserDbStorage implements UserStorage {
             log.warn("Validation failed: {}", reason);
             throw new NotFoundException(reason);
         }
+    }
+
+    public Collection<Film> getRecommendations(int userId) {
+        String queryUserEachLike = """
+                    SELECT u2.user_id
+                    FROM users_films_likes u1
+                    JOIN users_films_likes u2 ON u1.film_id = u2.film_id
+                    WHERE u1.user_id = ? AND u2.user_id != ?
+                    GROUP BY u2.user_id
+                    ORDER BY COUNT(u1.film_id) DESC
+                    LIMIT 1
+                """;
+        List<Integer> userIdEachLikesFilms = jdbcTemplate.queryForList(queryUserEachLike, Integer.class, userId, userId);
+
+        if (userIdEachLikesFilms.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        String queryForUserLikeFilm = """
+                    SELECT DISTINCT ufl1.film_id
+                    FROM users_films_likes ufl1
+                    WHERE ufl1.user_id = ?
+                    AND NOT EXISTS (
+                        SELECT 1
+                        FROM users_films_likes ufl2
+                        WHERE ufl2.user_id = ? AND ufl2.film_id = ufl1.film_id
+                    )
+                """;
+
+        List<Integer> filmIdUserNotLike = jdbcTemplate.queryForList(queryForUserLikeFilm, Integer.class, userIdEachLikesFilms.get(0), userId);
+
+        if (filmIdUserNotLike.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        MapSqlParameterSource params = new MapSqlParameterSource("filmIds", filmIdUserNotLike);
+        String query = String.format(SELECT_FILMS_QUERY, "WHERE f.id IN (:filmIds)", "");
+
+        return namedParameterJdbcTemplate.query(query, params, FilmMapper.getInstance());
     }
 }
