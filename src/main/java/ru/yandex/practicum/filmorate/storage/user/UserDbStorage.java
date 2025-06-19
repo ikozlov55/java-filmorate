@@ -92,6 +92,8 @@ public class UserDbStorage implements UserStorage {
         jdbcTemplate.update("DELETE FROM users_films_likes WHERE user_id = ?", userId);
         jdbcTemplate.update("DELETE FROM users_friends_requests WHERE user_id = ?", userId);
         jdbcTemplate.update("DELETE FROM users_friends_requests WHERE friend_id = ?", userId);
+        jdbcTemplate.update("DELETE FROM user_feeds WHERE entity_id = ? AND event_type = 'FRIEND'", userId);
+        jdbcTemplate.update("DELETE FROM user_feeds WHERE user_id = ?", userId);
         jdbcTemplate.update("DELETE FROM users WHERE id = ?", userId);
     }
 
@@ -107,12 +109,12 @@ public class UserDbStorage implements UserStorage {
                 s -> {
                     if (s == FriendRequestStatus.UNAPPROVED) {
                         friendRequestStorage.update(friendId, userId, FriendRequestStatus.APPROVED);
-                        feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.ADD, friendId, System.currentTimeMillis()));
+                        feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.ADD, friendId));
                     }
                 },
                 () -> {
                     friendRequestStorage.create(userId, friendId, FriendRequestStatus.UNAPPROVED);
-                    feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.ADD, friendId, System.currentTimeMillis()));
+                    feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.ADD, friendId));
                 }
         );
     }
@@ -127,12 +129,12 @@ public class UserDbStorage implements UserStorage {
                     switch (s) {
                         case UNAPPROVED -> {
                             friendRequestStorage.delete(userId, friendId);
-                            feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.REMOVE, friendId, System.currentTimeMillis()));
+                            feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.REMOVE, friendId));
                         }
                         case APPROVED -> {
                             friendRequestStorage.delete(userId, friendId);
                             friendRequestStorage.create(friendId, userId, FriendRequestStatus.UNAPPROVED);
-                            feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.REMOVE, friendId, System.currentTimeMillis()));
+                            feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.REMOVE, friendId));
                         }
                     }
                 },
@@ -140,7 +142,7 @@ public class UserDbStorage implements UserStorage {
                         s -> {
                             if (s == FriendRequestStatus.APPROVED) {
                                 friendRequestStorage.update(friendId, userId, FriendRequestStatus.UNAPPROVED);
-                                feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.UPDATE, friendId, System.currentTimeMillis()));
+                                feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.UPDATE, friendId));
                             }
                         }
                 )

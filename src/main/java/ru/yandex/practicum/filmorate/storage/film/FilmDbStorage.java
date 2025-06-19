@@ -146,6 +146,7 @@ COALESCE — это функция, которая возвращает перв
         jdbcTemplate.update("DELETE FROM films_genres WHERE film_id = ?", filmId);
         jdbcTemplate.update("DELETE FROM users_films_likes WHERE film_id = ?", filmId);
         jdbcTemplate.update("DELETE FROM films_directors WHERE film_id = ?", filmId);
+        jdbcTemplate.update("DELETE FROM user_feeds WHERE entity_id = ? AND event_type = 'LIKE'", filmId);
         jdbcTemplate.update("DELETE FROM films WHERE id = ?", filmId);
     }
 
@@ -161,7 +162,7 @@ COALESCE — это функция, которая возвращает перв
         argsMap.put("user_id", userId);
         filmsLikesJdbcInsert.execute(argsMap);
 
-        feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.LIKE, FeedEvent.Operation.ADD, filmId, System.currentTimeMillis()));
+        feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.LIKE, FeedEvent.Operation.ADD, filmId));
     }
 
     @Override
@@ -175,7 +176,7 @@ COALESCE — это функция, которая возвращает перв
                    AND user_id = ?
                 """, filmId, userId);
 
-        feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.LIKE, FeedEvent.Operation.REMOVE, filmId, System.currentTimeMillis()));
+        feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.LIKE, FeedEvent.Operation.REMOVE, filmId));
     }
 
     /*

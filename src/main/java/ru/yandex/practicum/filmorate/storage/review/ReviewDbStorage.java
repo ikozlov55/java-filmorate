@@ -75,7 +75,7 @@ public class ReviewDbStorage implements ReviewStorage {
         argsMap.put("film_id", review.getFilmId());
         int reviewId = reviewsJdbcInsert.executeAndReturnKey(argsMap).intValue();
 
-        feedDbStorage.addEvent(new FeedEvent(review.getUserId(), FeedEvent.EventType.REVIEW, FeedEvent.Operation.ADD, reviewId, System.currentTimeMillis()));
+        feedDbStorage.addEvent(new FeedEvent(review.getUserId(), FeedEvent.EventType.REVIEW, FeedEvent.Operation.ADD, reviewId));
 
         return getById(reviewId);
     }
@@ -84,7 +84,7 @@ public class ReviewDbStorage implements ReviewStorage {
     public Review update(Review review) {
         checkReviewExists(review.getReviewId());
 
-        feedDbStorage.addEvent(new FeedEvent(review.getUserId(), FeedEvent.EventType.REVIEW, FeedEvent.Operation.UPDATE, review.getReviewId(), System.currentTimeMillis()));
+        feedDbStorage.addEvent(new FeedEvent(review.getUserId(), FeedEvent.EventType.REVIEW, FeedEvent.Operation.UPDATE, review.getReviewId()));
 
         jdbcTemplate.update("""
                 UPDATE reviews
@@ -107,7 +107,7 @@ public class ReviewDbStorage implements ReviewStorage {
                 reviewId
         );
 
-        feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.REVIEW, FeedEvent.Operation.REMOVE, reviewId, System.currentTimeMillis()));
+        feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.REVIEW, FeedEvent.Operation.REMOVE, reviewId));
 
         jdbcTemplate.update("DELETE from reviews WHERE id = ?", reviewId);
     }
