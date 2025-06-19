@@ -9,6 +9,4 @@ public interface FeedStorage {
 
     void addEvent(FeedEvent event);
 
-    FeedEvent createFeedEvent(int userId, FeedEvent.EventType eventType,
-                              FeedEvent.Operation operation, int entityId);
 }

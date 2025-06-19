@@ -35,15 +35,4 @@ public class FeedDbStorage implements FeedStorage {
 
         feedJdbcInsert.execute(args);
     }
-
-    @Override
-    public FeedEvent createFeedEvent(int userId, FeedEvent.EventType eventType, FeedEvent.Operation operation, int entityId) {
-        FeedEvent event = new FeedEvent();
-        event.setUserId(userId);
-        event.setTimestamp(System.currentTimeMillis());
-        event.setEventType(eventType);
-        event.setOperation(operation);
-        event.setEntityId(entityId);
-        return event;
-    }
 }
