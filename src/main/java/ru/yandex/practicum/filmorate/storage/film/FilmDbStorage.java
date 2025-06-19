@@ -22,11 +22,7 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Repository
 @Primary
@@ -185,12 +181,28 @@ COALESCE — это функция, которая возвращает перв
     public Collection<Film> filmsPopular(Integer genreId, String year, Integer count) {
         String requirementOrder = String.format(
                 "ORDER BY likes DESC LIMIT %d ", count);
-        String requirement = String.format(
-                "WHERE genre_id = %d AND EXTRACT(YEAR FROM release_date) = '%s' ",
-                genreId, year);
+        String requirement = String.format("""
+                WHERE f.id IN
+                     (
+                     SELECT ff.id
+                     FROM films ff
+                     JOIN films_genres ffg ON ff.id = ffg.film_id
+                     WHERE ffg.genre_id = %d
+                     )
+                 AND EXTRACT(YEAR FROM release_date) = '%s'
+                """, genreId, year);
 
         if (year == null && genreId != null) {
-            requirement = String.format("WHERE genre_id = %d ", genreId);
+            // requirement = String.format("WHERE genre_id = %d ", genreId);
+            requirement = String.format("""
+                     WHERE f.id IN
+                     (
+                     SELECT ff.id
+                     FROM films ff
+                     JOIN films_genres ffg ON ff.id = ffg.film_id
+                     WHERE ffg.genre_id = %d
+                     )
+                    """, genreId);
         }
         if (year != null && genreId == null) {
             requirement = String.format("WHERE EXTRACT(YEAR FROM release_date) = '%s' ", year);
