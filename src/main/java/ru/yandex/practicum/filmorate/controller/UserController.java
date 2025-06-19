@@ -4,8 +4,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.model.FeedEvent;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
@@ -16,6 +18,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final FeedService feedService;
 
     @GetMapping
     public Collection<User> getAll() {
@@ -60,6 +63,11 @@ public class UserController {
     @GetMapping("/{userId}/friends/common/{otherId}")
     public Collection<User> getCommonFriends(@PathVariable int userId, @PathVariable int otherId) {
         return userService.getCommonFriends(userId, otherId);
+    }
+
+    @GetMapping("/{id}/feed")
+    public Collection<FeedEvent> getUserFeed(@PathVariable Integer id) {
+        return feedService.getUserFeed(id);
     }
 
     @GetMapping("/{userId}/recommendations")

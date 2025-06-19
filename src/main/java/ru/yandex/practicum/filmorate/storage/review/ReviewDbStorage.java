@@ -8,7 +8,9 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.FeedEvent;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.storage.feed.FeedDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.reviews_ratings.ReviewsRatingsStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -28,6 +30,7 @@ public class ReviewDbStorage implements ReviewStorage {
     private final UserStorage userStorage;
     private final ReviewsRatingsStorage reviewsRatingsStorage;
     private final SimpleJdbcInsert reviewsJdbcInsert;
+    private final FeedDbStorage feedDbStorage;
     private static final String SELECT_REVIEWS_QUERY = """
                SELECT r.id,
                       r.content,
@@ -70,12 +73,18 @@ public class ReviewDbStorage implements ReviewStorage {
         argsMap.put("user_id", review.getUserId());
         argsMap.put("film_id", review.getFilmId());
         int reviewId = reviewsJdbcInsert.executeAndReturnKey(argsMap).intValue();
+
+        feedDbStorage.addEvent(new FeedEvent(review.getUserId(), FeedEvent.EventType.REVIEW, FeedEvent.Operation.ADD, reviewId, System.currentTimeMillis()));
+
         return getById(reviewId);
     }
 
     @Override
     public Review update(Review review) {
         checkReviewExists(review.getReviewId());
+
+        feedDbStorage.addEvent(new FeedEvent(review.getUserId(), FeedEvent.EventType.REVIEW, FeedEvent.Operation.UPDATE, review.getReviewId(), System.currentTimeMillis()));
+
         jdbcTemplate.update("""
                 UPDATE reviews
                    SET content = ?,
@@ -90,6 +99,15 @@ public class ReviewDbStorage implements ReviewStorage {
     public void delete(int reviewId) {
         checkReviewExists(reviewId);
         reviewsRatingsStorage.deleteByReviewId(reviewId);
+
+        Integer userId = jdbcTemplate.queryForObject(
+                "SELECT user_id FROM reviews WHERE id = ?",
+                Integer.class,
+                reviewId
+        );
+
+        feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.REVIEW, FeedEvent.Operation.REMOVE, reviewId, System.currentTimeMillis()));
+
         jdbcTemplate.update("DELETE from reviews WHERE id = ?", reviewId);
     }
 
