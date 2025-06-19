@@ -83,6 +83,7 @@ public class ReviewDbStorage implements ReviewStorage {
     public Review update(Review review) {
         checkReviewExists(review.getReviewId());
         Integer oldReviewUserId = (review.getReviewId());
+        userStorage.checkUserExists(oldReviewUserId);
         feedDbStorage.addEvent(new FeedEvent(oldReviewUserId, FeedEvent.EventType.REVIEW, FeedEvent.Operation.UPDATE, review.getReviewId()));
 
         jdbcTemplate.update("""
