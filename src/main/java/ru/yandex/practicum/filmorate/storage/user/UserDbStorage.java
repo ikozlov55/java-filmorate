@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static ru.yandex.practicum.filmorate.storage.film.FilmDbStorage.SELECT_FILMS_QUERY;
 
 @Repository
 @Primary
@@ -223,44 +224,9 @@ public class UserDbStorage implements UserStorage {
             return new ArrayList<>();
         }
 
-        String queryForRecommendedFilms = """
-                    SELECT
-                        f.id,
-                        f.name,
-                        f.description,
-                        f.release_date,
-                        f.duration,
-                        f.mpa_id,
-                        m.name AS mpa_name,
-                        COUNT(ufl.film_id) AS likes,
-                        COALESCE(LISTAGG(DISTINCT fg.genre_id, ','), '') AS genres_ids,
-                        COALESCE(LISTAGG(DISTINCT g.name, ','), '') AS genres_names,
-                        COALESCE(LISTAGG(DISTINCT fd.director_id, ','), '') AS directors_ids,
-                        COALESCE(LISTAGG(DISTINCT d.name, ','), '') AS directors_names
-                    FROM
-                        films f
-                    JOIN
-                        mpa m ON f.mpa_id = m.id
-                    LEFT JOIN
-                        users_films_likes ufl ON f.id = ufl.film_id
-                    LEFT JOIN
-                        films_genres fg ON f.id = fg.film_id
-                    LEFT JOIN
-                        genres g ON fg.genre_id = g.id
-                    LEFT JOIN
-                        films_directors fd ON f.id = fd.film_id
-                    LEFT JOIN
-                        directors d ON fd.director_id = d.id
-                    WHERE
-                        f.id IN (:filmIds)
-                    GROUP BY
-                        f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, m.name
-                    ORDER BY
-                        likes DESC
-                """;
-
         MapSqlParameterSource params = new MapSqlParameterSource("filmIds", filmIdUserNotLike);
+        String query = String.format(SELECT_FILMS_QUERY, "WHERE f.id IN (:filmIds)", "");
 
-        return namedParameterJdbcTemplate.query(queryForRecommendedFilms, params, FilmMapper.getInstance());
+        return namedParameterJdbcTemplate.query(query , params, FilmMapper.getInstance());
     }
 }
