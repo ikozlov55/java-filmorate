@@ -37,11 +37,12 @@ public class ReviewDbStorage implements ReviewStorage {
                       r.is_positive,
                       r.user_id,
                       r.film_id,
-                      SUM(urr.score) AS useful
+                      COALESCE(SUM(urr.score), 0) AS useful
                  FROM reviews r
             LEFT JOIN users_reviews_ratings urr ON r.id = urr.review_id
                       %s
                 GROUP BY r.id
+                ORDER BY useful DESC
                       %s
             """;
     private static final int REVIEW_LIKE_SCORE = 1;

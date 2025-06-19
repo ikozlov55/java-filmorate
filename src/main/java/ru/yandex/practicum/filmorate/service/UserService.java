@@ -29,7 +29,7 @@ public class UserService {
 
     public User create(User user) {
         log.info("User create request received: {}", user);
-        if (user.getName() == null) {
+        if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
         User createdUser = userStorage.create(user);
@@ -44,7 +44,7 @@ public class UserService {
             log.warn("Validation failed: {}", reason);
             throw new ValidationException(reason);
         }
-        if (user.getName() == null) {
+        if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
         User updatedUser = userStorage.update(user);
