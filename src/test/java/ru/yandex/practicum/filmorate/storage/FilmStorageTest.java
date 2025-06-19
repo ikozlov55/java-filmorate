@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.director.DirectorDbStorage;
+import ru.yandex.practicum.filmorate.storage.feed.FeedDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestDbStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
@@ -38,6 +39,7 @@ import java.util.Set;
         FriendRequestDbStorage.class,
         FilmorateJdbcConfig.class,
         DirectorDbStorage.class,
+        FeedDbStorage.class,
 })
 public class FilmStorageTest {
     private final FilmDbStorage filmStorage;
