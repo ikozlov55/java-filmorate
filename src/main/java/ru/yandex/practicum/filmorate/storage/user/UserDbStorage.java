@@ -227,6 +227,6 @@ public class UserDbStorage implements UserStorage {
         MapSqlParameterSource params = new MapSqlParameterSource("filmIds", filmIdUserNotLike);
         String query = String.format(SELECT_FILMS_QUERY, "WHERE f.id IN (:filmIds)", "");
 
-        return namedParameterJdbcTemplate.query(query , params, FilmMapper.getInstance());
+        return namedParameterJdbcTemplate.query(query, params, FilmMapper.getInstance());
     }
 }
