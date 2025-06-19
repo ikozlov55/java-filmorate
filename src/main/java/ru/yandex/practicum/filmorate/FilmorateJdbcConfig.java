@@ -41,4 +41,11 @@ public class FilmorateJdbcConfig {
         return new SimpleJdbcInsert(jdbcTemplate).withTableName("reviews")
                 .usingGeneratedKeyColumns("id");
     }
+
+    @Bean
+    public SimpleJdbcInsert feedJdbcInsert(JdbcTemplate jdbcTemplate) {
+        return new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("user_feeds")
+                .usingGeneratedKeyColumns("event_id");
+    }
 }

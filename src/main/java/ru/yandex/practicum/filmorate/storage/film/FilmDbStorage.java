@@ -11,9 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.FeedEvent;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
+import ru.yandex.practicum.filmorate.storage.feed.FeedDbStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -36,6 +38,7 @@ public class FilmDbStorage implements FilmStorage {
     private final GenreStorage genreStorage;
     private final MpaStorage mpaStorage;
     private final DirectorStorage directorStorage;
+    private final FeedDbStorage feedDbStorage;
 
     /*
     GROUP_CONCAT — это функция, которая объединяет значения из нескольких строк в одно строковое значение,
@@ -154,6 +157,8 @@ COALESCE — это функция, которая возвращает перв
         argsMap.put("film_id", filmId);
         argsMap.put("user_id", userId);
         filmsLikesJdbcInsert.execute(argsMap);
+
+        feedDbStorage.addEvent(feedDbStorage.createFeedEvent(userId, FeedEvent.EventType.LIKE, FeedEvent.Operation.ADD, filmId));
     }
 
     @Override
@@ -166,6 +171,8 @@ COALESCE — это функция, которая возвращает перв
                  WHERE film_id = ?
                    AND user_id = ?
                 """, filmId, userId);
+
+        feedDbStorage.addEvent(feedDbStorage.createFeedEvent(userId, FeedEvent.EventType.LIKE, FeedEvent.Operation.REMOVE, filmId));
     }
 
 

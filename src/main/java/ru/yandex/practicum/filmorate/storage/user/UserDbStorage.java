@@ -8,7 +8,9 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.FeedEvent;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.feed.FeedDbStorage;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestStatus;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestStorage;
 
@@ -24,6 +26,7 @@ public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FriendRequestStorage friendRequestStorage;
     private final SimpleJdbcInsert usersJdbcInsert;
+    private final FeedDbStorage feedDbStorage;
 
     private static final String SELECT_USERS_QUERY = """
             SELECT id,
@@ -86,6 +89,7 @@ public class UserDbStorage implements UserStorage {
     public void addFriend(int userId, int friendId) {
         checkUserExists(userId);
         checkUserExists(friendId);
+
         if (friendRequestStorage.get(userId, friendId).isPresent()) {
             return;
         }
@@ -93,9 +97,13 @@ public class UserDbStorage implements UserStorage {
                 s -> {
                     if (s == FriendRequestStatus.UNAPPROVED) {
                         friendRequestStorage.update(friendId, userId, FriendRequestStatus.APPROVED);
+                        feedDbStorage.addEvent(feedDbStorage.createFeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.ADD, friendId));
                     }
                 },
-                () -> friendRequestStorage.create(userId, friendId, FriendRequestStatus.UNAPPROVED)
+                () -> {
+                    friendRequestStorage.create(userId, friendId, FriendRequestStatus.UNAPPROVED);
+                    feedDbStorage.addEvent(feedDbStorage.createFeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.ADD, friendId));
+                }
         );
     }
 
@@ -103,13 +111,18 @@ public class UserDbStorage implements UserStorage {
     public void deleteFriend(int userId, int friendId) {
         checkUserExists(userId);
         checkUserExists(friendId);
+
         friendRequestStorage.get(userId, friendId).ifPresentOrElse(
                 s -> {
                     switch (s) {
-                        case UNAPPROVED -> friendRequestStorage.delete(userId, friendId);
+                        case UNAPPROVED -> {
+                            friendRequestStorage.delete(userId, friendId);
+                            feedDbStorage.addEvent(feedDbStorage.createFeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.REMOVE, friendId));
+                        }
                         case APPROVED -> {
                             friendRequestStorage.delete(userId, friendId);
                             friendRequestStorage.create(friendId, userId, FriendRequestStatus.UNAPPROVED);
+                            feedDbStorage.addEvent(feedDbStorage.createFeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.REMOVE, friendId));
                         }
                     }
                 },
@@ -117,6 +130,7 @@ public class UserDbStorage implements UserStorage {
                         s -> {
                             if (s == FriendRequestStatus.APPROVED) {
                                 friendRequestStorage.update(friendId, userId, FriendRequestStatus.UNAPPROVED);
+                                feedDbStorage.addEvent(feedDbStorage.createFeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.UPDATE, friendId));
                             }
                         }
                 )
