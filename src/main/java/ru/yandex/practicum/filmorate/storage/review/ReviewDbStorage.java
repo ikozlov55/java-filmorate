@@ -74,7 +74,6 @@ public class ReviewDbStorage implements ReviewStorage {
         argsMap.put("user_id", review.getUserId());
         argsMap.put("film_id", review.getFilmId());
         int reviewId = reviewsJdbcInsert.executeAndReturnKey(argsMap).intValue();
-
         feedDbStorage.addEvent(new FeedEvent(review.getUserId(), FeedEvent.EventType.REVIEW, FeedEvent.Operation.ADD, reviewId));
 
         return getById(reviewId);
@@ -82,9 +81,8 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Review update(Review review) {
-        checkReviewExists(review.getReviewId());
-
         feedDbStorage.addEvent(new FeedEvent(review.getUserId(), FeedEvent.EventType.REVIEW, FeedEvent.Operation.UPDATE, review.getReviewId()));
+        checkReviewExists(review.getReviewId());
 
         jdbcTemplate.update("""
                 UPDATE reviews
@@ -100,6 +98,7 @@ public class ReviewDbStorage implements ReviewStorage {
     public void delete(int reviewId) {
         checkReviewExists(reviewId);
         reviewsRatingsStorage.deleteByReviewId(reviewId);
+
 
         Integer userId = jdbcTemplate.queryForObject(
                 "SELECT user_id FROM reviews WHERE id = ?",
@@ -163,6 +162,4 @@ public class ReviewDbStorage implements ReviewStorage {
             throw new NotFoundException(reason);
         }
     }
-
-
 }
