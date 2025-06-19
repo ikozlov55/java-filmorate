@@ -158,7 +158,7 @@ COALESCE — это функция, которая возвращает перв
         argsMap.put("user_id", userId);
         filmsLikesJdbcInsert.execute(argsMap);
 
-        feedDbStorage.addEvent(feedDbStorage.createFeedEvent(userId, FeedEvent.EventType.LIKE, FeedEvent.Operation.ADD, filmId));
+        feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.LIKE, FeedEvent.Operation.ADD, filmId, System.currentTimeMillis()));
     }
 
     @Override
@@ -172,9 +172,8 @@ COALESCE — это функция, которая возвращает перв
                    AND user_id = ?
                 """, filmId, userId);
 
-        feedDbStorage.addEvent(feedDbStorage.createFeedEvent(userId, FeedEvent.EventType.LIKE, FeedEvent.Operation.REMOVE, filmId));
+        feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.LIKE, FeedEvent.Operation.REMOVE, filmId, System.currentTimeMillis()));
     }
-
 
     /*
         GET /films/popular?count={limit}&genreId={genreId}&year={year}

@@ -97,12 +97,12 @@ public class UserDbStorage implements UserStorage {
                 s -> {
                     if (s == FriendRequestStatus.UNAPPROVED) {
                         friendRequestStorage.update(friendId, userId, FriendRequestStatus.APPROVED);
-                        feedDbStorage.addEvent(feedDbStorage.createFeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.ADD, friendId));
+                        feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.ADD, friendId, System.currentTimeMillis()));
                     }
                 },
                 () -> {
                     friendRequestStorage.create(userId, friendId, FriendRequestStatus.UNAPPROVED);
-                    feedDbStorage.addEvent(feedDbStorage.createFeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.ADD, friendId));
+                    feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.ADD, friendId, System.currentTimeMillis()));
                 }
         );
     }
@@ -117,12 +117,12 @@ public class UserDbStorage implements UserStorage {
                     switch (s) {
                         case UNAPPROVED -> {
                             friendRequestStorage.delete(userId, friendId);
-                            feedDbStorage.addEvent(feedDbStorage.createFeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.REMOVE, friendId));
+                            feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.REMOVE, friendId, System.currentTimeMillis()));
                         }
                         case APPROVED -> {
                             friendRequestStorage.delete(userId, friendId);
                             friendRequestStorage.create(friendId, userId, FriendRequestStatus.UNAPPROVED);
-                            feedDbStorage.addEvent(feedDbStorage.createFeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.REMOVE, friendId));
+                            feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.REMOVE, friendId, System.currentTimeMillis()));
                         }
                     }
                 },
@@ -130,7 +130,7 @@ public class UserDbStorage implements UserStorage {
                         s -> {
                             if (s == FriendRequestStatus.APPROVED) {
                                 friendRequestStorage.update(friendId, userId, FriendRequestStatus.UNAPPROVED);
-                                feedDbStorage.addEvent(feedDbStorage.createFeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.UPDATE, friendId));
+                                feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.UPDATE, friendId, System.currentTimeMillis()));
                             }
                         }
                 )

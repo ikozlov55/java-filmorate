@@ -18,7 +18,6 @@ public class FeedMapper implements RowMapper<FeedEvent> {
     @Override
     public FeedEvent mapRow(ResultSet rs, int rowNum) throws SQLException {
         FeedEvent event = new FeedEvent();
-        event.setEventId(rs.getInt("event_id"));
         event.setTimestamp(rs.getLong("timestamp"));
         event.setUserId(rs.getInt("user_id"));
         event.setEventType(FeedEvent.EventType.valueOf(rs.getString("event_type")));
