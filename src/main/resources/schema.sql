@@ -29,15 +29,15 @@ CREATE TABLE IF NOT EXISTS directors
 
 CREATE TABLE IF NOT EXISTS films_directors
 (
-    film_id     int REFERENCES films (id),
-    director_id int REFERENCES directors (id),
+    film_id     int NOT NULL REFERENCES films (id),
+    director_id int NOT NULL REFERENCES directors (id),
     PRIMARY KEY (film_id, director_id)
 );
 
 CREATE TABLE IF NOT EXISTS films_genres
 (
-    film_id  int REFERENCES films (id),
-    genre_id int REFERENCES genres (id),
+    film_id  int NOT NULL REFERENCES films (id),
+    genre_id int NOT NULL REFERENCES genres (id),
     PRIMARY KEY (film_id, genre_id)
 );
 
@@ -52,15 +52,15 @@ CREATE TABLE IF NOT EXISTS users
 
 CREATE TABLE IF NOT EXISTS users_films_likes
 (
-    film_id int REFERENCES films (id),
-    user_id int REFERENCES users (id),
+    film_id int NOT NULL REFERENCES films (id),
+    user_id int NOT NULL REFERENCES users (id),
     PRIMARY KEY (film_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS users_friends_requests
 (
-    user_id   int REFERENCES users (id),
-    friend_id int REFERENCES users (id),
+    user_id   int NOT NULL REFERENCES users (id),
+    friend_id int NOT NULL REFERENCES users (id),
     status    varchar(20) NOT NULL,
     PRIMARY KEY (user_id, friend_id)
 );
@@ -76,8 +76,8 @@ CREATE TABLE IF NOT EXISTS reviews
 
 CREATE TABLE IF NOT EXISTS users_reviews_ratings
 (
-    user_id   int REFERENCES users (id),
-    review_id int REFERENCES reviews (id),
+    user_id   int NOT NULL REFERENCES users (id),
+    review_id int NOT NULL REFERENCES reviews (id),
     score     smallint NOT NULL,
     PRIMARY KEY (user_id, review_id)
 );
