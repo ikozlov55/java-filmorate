@@ -4,17 +4,28 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.FeedEvent;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.feed.FeedDbStorage;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.film.FilmMapper;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestStatus;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestStorage;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static ru.yandex.practicum.filmorate.storage.film.FilmDbStorage.SELECT_FILMS_QUERY;
 
 @Repository
 @Primary
@@ -24,8 +35,10 @@ public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FriendRequestStorage friendRequestStorage;
     private final SimpleJdbcInsert usersJdbcInsert;
+    private final FeedDbStorage feedDbStorage;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    private static final String SELECT_FILMS_QUERY = """
+    private static final String SELECT_USERS_QUERY = """
             SELECT id,
                    email,
                    login,
@@ -37,13 +50,13 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<User> getAll() {
-        return jdbcTemplate.query(String.format(SELECT_FILMS_QUERY, ""), UserMapper.getInstance());
+        return jdbcTemplate.query(String.format(SELECT_USERS_QUERY, ""), UserMapper.getInstance());
     }
 
     @Override
     public User getById(int id) {
         checkUserExists(id);
-        return jdbcTemplate.queryForObject(String.format(SELECT_FILMS_QUERY, "WHERE id = ?"), UserMapper.getInstance(), id);
+        return jdbcTemplate.queryForObject(String.format(SELECT_USERS_QUERY, "WHERE id = ?"), UserMapper.getInstance(), id);
     }
 
     @Override
@@ -74,18 +87,20 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     @Transactional
-    public User delete(User user) {
-        checkUserExists(user.getId());
-        jdbcTemplate.update("DELETE FROM users_films_likes WHERE user_id = ?", user.getId());
-        jdbcTemplate.update("DELETE FROM users_friends_requests WHERE user_id = ?", user.getId());
-        jdbcTemplate.update("DELETE FROM users WHERE id = ?", user.getId());
-        return user;
+    public void delete(int userId) {
+        checkUserExists(userId);
+        jdbcTemplate.update("DELETE FROM users_films_likes WHERE user_id = ?", userId);
+        jdbcTemplate.update("DELETE FROM users_friends_requests WHERE user_id = ?", userId);
+        jdbcTemplate.update("DELETE FROM users_friends_requests WHERE friend_id = ?", userId);
+        jdbcTemplate.update("DELETE FROM user_feeds WHERE user_id = ?", userId);
+        jdbcTemplate.update("DELETE FROM users WHERE id = ?", userId);
     }
 
     @Override
     public void addFriend(int userId, int friendId) {
         checkUserExists(userId);
         checkUserExists(friendId);
+
         if (friendRequestStorage.get(userId, friendId).isPresent()) {
             return;
         }
@@ -93,9 +108,13 @@ public class UserDbStorage implements UserStorage {
                 s -> {
                     if (s == FriendRequestStatus.UNAPPROVED) {
                         friendRequestStorage.update(friendId, userId, FriendRequestStatus.APPROVED);
+                        feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.ADD, friendId));
                     }
                 },
-                () -> friendRequestStorage.create(userId, friendId, FriendRequestStatus.UNAPPROVED)
+                () -> {
+                    friendRequestStorage.create(userId, friendId, FriendRequestStatus.UNAPPROVED);
+                    feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.ADD, friendId));
+                }
         );
     }
 
@@ -103,13 +122,18 @@ public class UserDbStorage implements UserStorage {
     public void deleteFriend(int userId, int friendId) {
         checkUserExists(userId);
         checkUserExists(friendId);
+
         friendRequestStorage.get(userId, friendId).ifPresentOrElse(
                 s -> {
                     switch (s) {
-                        case UNAPPROVED -> friendRequestStorage.delete(userId, friendId);
+                        case UNAPPROVED -> {
+                            friendRequestStorage.delete(userId, friendId);
+                            feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.REMOVE, friendId));
+                        }
                         case APPROVED -> {
                             friendRequestStorage.delete(userId, friendId);
                             friendRequestStorage.create(friendId, userId, FriendRequestStatus.UNAPPROVED);
+                            feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.REMOVE, friendId));
                         }
                     }
                 },
@@ -117,6 +141,7 @@ public class UserDbStorage implements UserStorage {
                         s -> {
                             if (s == FriendRequestStatus.APPROVED) {
                                 friendRequestStorage.update(friendId, userId, FriendRequestStatus.UNAPPROVED);
+                                feedDbStorage.addEvent(new FeedEvent(userId, FeedEvent.EventType.FRIEND, FeedEvent.Operation.UPDATE, friendId));
                             }
                         }
                 )
@@ -126,7 +151,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public Collection<User> getFriends(int userId) {
         checkUserExists(userId);
-        String query = String.format(SELECT_FILMS_QUERY, """
+        String query = String.format(SELECT_USERS_QUERY, """
                 WHERE id IN (
                      SELECT friend_id
                        FROM users_friends_requests
@@ -146,7 +171,7 @@ public class UserDbStorage implements UserStorage {
     public Collection<User> getCommonFriends(int userId, int otherId) {
         checkUserExists(userId);
         checkUserExists(otherId);
-        String query = String.format(SELECT_FILMS_QUERY, """
+        String query = String.format(SELECT_USERS_QUERY, """
                 WHERE id IN (
                      (SELECT friend_id
                        FROM users_friends_requests
@@ -180,5 +205,44 @@ public class UserDbStorage implements UserStorage {
             log.warn("Validation failed: {}", reason);
             throw new NotFoundException(reason);
         }
+    }
+
+    public Collection<Film> getRecommendations(int userId) {
+        String queryUserEachLike = """
+                    SELECT u2.user_id
+                    FROM users_films_likes u1
+                    JOIN users_films_likes u2 ON u1.film_id = u2.film_id
+                    WHERE u1.user_id = ? AND u2.user_id != ?
+                    GROUP BY u2.user_id
+                    ORDER BY COUNT(u1.film_id) DESC
+                    LIMIT 1
+                """;
+        List<Integer> userIdEachLikesFilms = jdbcTemplate.queryForList(queryUserEachLike, Integer.class, userId, userId);
+
+        if (userIdEachLikesFilms.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        String queryForUserLikeFilm = """
+                    SELECT DISTINCT ufl1.film_id
+                    FROM users_films_likes ufl1
+                    WHERE ufl1.user_id = ?
+                    AND NOT EXISTS (
+                        SELECT 1
+                        FROM users_films_likes ufl2
+                        WHERE ufl2.user_id = ? AND ufl2.film_id = ufl1.film_id
+                    )
+                """;
+
+        List<Integer> filmIdUserNotLike = jdbcTemplate.queryForList(queryForUserLikeFilm, Integer.class, userIdEachLikesFilms.get(0), userId);
+
+        if (filmIdUserNotLike.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        MapSqlParameterSource params = new MapSqlParameterSource("filmIds", filmIdUserNotLike);
+        String query = String.format(SELECT_FILMS_QUERY, "WHERE f.id IN (:filmIds)", "");
+
+        return namedParameterJdbcTemplate.query(query, params, FilmMapper.getInstance());
     }
 }

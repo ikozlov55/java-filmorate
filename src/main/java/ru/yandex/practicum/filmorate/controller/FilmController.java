@@ -2,14 +2,12 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
 
-@Slf4j
 @RestController
 @RequestMapping("/films")
 @RequiredArgsConstructor
@@ -36,6 +34,11 @@ public class FilmController {
         return filmService.update(film);
     }
 
+    @DeleteMapping("/{filmId}")
+    public void delete(@PathVariable int filmId) {
+        filmService.delete(filmId);
+    }
+
     @PutMapping("/{filmId}/like/{userId}")
     public void addLike(@PathVariable int filmId, @PathVariable int userId) {
         filmService.addLike(filmId, userId);
@@ -46,9 +49,34 @@ public class FilmController {
         filmService.deleteLike(filmId, userId);
     }
 
+    // GET /films/popular?count={limit}&genreId={genreId}&year={year}
     @GetMapping("/popular")
-    public Collection<Film> filmsPopular(@RequestParam(required = false) Integer count) {
-        return filmService.filmsPopular(count);
+    public Collection<Film> filmsPopular(
+            @RequestParam(required = false) Integer genreId,
+            @RequestParam(required = false) String year,
+            @RequestParam(required = false) Integer count) {
+        return filmService.filmsPopular(genreId, year, count);
+    }
+
+
+    @GetMapping("/common")
+    public Collection<Film> filmsCommon(@RequestParam int userId, @RequestParam int friendId) {
+        return filmService.filmsCommon(userId, friendId);
+    }
+
+    @GetMapping("/search")
+    public Collection<Film> filmsSearch(@RequestParam String query, @RequestParam String by) {
+        return filmService.filmSearch(query, by);
+    }
+
+    //Возвращает список фильмов режиссера отсортированных по количеству лайков или году выпуска
+    //Пример запроса: GET /films/director/1?sortBy=likes
+    @GetMapping("/director/{directorId}")
+    public Collection<Film> getFilmsOfDirectors(@PathVariable int directorId,
+                                                @RequestParam(name = "sortBy", defaultValue = "year")
+                                                String sortBy) {
+        return filmService.getFilmsOfDirectors(directorId, sortBy);
+
     }
 }
 
