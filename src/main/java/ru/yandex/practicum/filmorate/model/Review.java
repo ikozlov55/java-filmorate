@@ -2,19 +2,20 @@ package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 public class Review {
-    private Integer reviewId;
+    private final Integer reviewId;
     @NotBlank
-    private String content;
+    private final String content;
     @NotNull
-    private Boolean isPositive;
+    private final Boolean isPositive;
     @NotNull
-    private Integer userId;
+    private final Integer userId;
     @NotNull
-    private Integer filmId;
-    private Integer useful;
+    private final Integer filmId;
+    private final Integer useful;
 }
 

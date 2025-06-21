@@ -57,8 +57,7 @@ public class DirectorDbStorage implements DirectorStorage {
         argsMap.put("name", director.getName());
 //выполнение SQL-запроса для вставки данных о режиссере в базу данных и получение сгенерированного идентификатора фильма
         int directorId = directorsJdbcInsert.executeAndReturnKey(argsMap).intValue();
-        director.setId(directorId);
-        return director;
+        return new Director(directorId, director.getName());
     }
 
     //PUT /directors - Изменение режиссёра

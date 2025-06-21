@@ -18,7 +18,7 @@ public class FeedDbStorage implements FeedStorage {
 
     @Override
     public Collection<FeedEvent> getUserFeed(int userId) {
-        String sql = "SELECT event_id, timestamp, user_id, event_type, operation, entity_id " +
+        String sql = "SELECT event_id, created_at, user_id, event_type, operation, entity_id " +
                 "FROM user_feeds WHERE user_id = ?";
 
         return jdbcTemplate.query(sql, FeedMapper.getInstance(), userId);
@@ -27,7 +27,7 @@ public class FeedDbStorage implements FeedStorage {
     @Override
     public void addEvent(FeedEvent event) {
         Map<String, Object> args = new HashMap<>();
-        args.put("timestamp", event.getTimestamp());
+        args.put("created_at", event.getTimestamp());
         args.put("user_id", event.getUserId());
         args.put("event_type", event.getEventType().toString());
         args.put("operation", event.getOperation().toString());

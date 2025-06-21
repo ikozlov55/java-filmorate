@@ -89,6 +89,6 @@ CREATE TABLE IF NOT EXISTS user_feeds
     event_type VARCHAR(20) NOT NULL,
     operation  VARCHAR(20) NOT NULL,
     entity_id  int         NOT NULL,
-    timestamp  bigint      NOT NULL
+    created_at timestamp      NOT NULL
 );
 

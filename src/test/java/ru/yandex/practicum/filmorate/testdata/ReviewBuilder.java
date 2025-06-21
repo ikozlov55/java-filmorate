@@ -50,13 +50,6 @@ public class ReviewBuilder {
     }
 
     public Review build() {
-        Review review = new Review();
-        review.setReviewId(reviewId);
-        review.setContent(content);
-        review.setIsPositive(isPositive);
-        review.setUserId(userId);
-        review.setFilmId(filmId);
-        review.setUseful(useful);
-        return review;
+        return new Review(reviewId, content, isPositive, userId, filmId, useful);
     }
 }

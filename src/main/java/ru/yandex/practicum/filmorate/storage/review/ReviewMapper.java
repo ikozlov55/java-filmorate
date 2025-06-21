@@ -7,7 +7,7 @@ import ru.yandex.practicum.filmorate.model.Review;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class ReviewMapper implements RowMapper<Review> {
+public final class ReviewMapper implements RowMapper<Review> {
     @Getter
     private static final ReviewMapper instance = new ReviewMapper();
 
@@ -16,13 +16,11 @@ public class ReviewMapper implements RowMapper<Review> {
 
     @Override
     public Review mapRow(ResultSet rs, int rowNum) throws SQLException {
-        Review review = new Review();
-        review.setReviewId(rs.getInt("id"));
-        review.setContent(rs.getString("content"));
-        review.setIsPositive(rs.getBoolean("is_positive"));
-        review.setUserId(rs.getInt("user_id"));
-        review.setFilmId(rs.getInt("film_id"));
-        review.setUseful(rs.getInt("useful"));
-        return review;
+        return new Review(rs.getInt("id"),
+                rs.getString("content"),
+                rs.getBoolean("is_positive"),
+                rs.getInt("user_id"),
+                rs.getInt("film_id"),
+                rs.getInt("useful"));
     }
 }

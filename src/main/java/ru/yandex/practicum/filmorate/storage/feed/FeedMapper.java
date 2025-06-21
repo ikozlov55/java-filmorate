@@ -7,7 +7,7 @@ import ru.yandex.practicum.filmorate.model.FeedEvent;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class FeedMapper implements RowMapper<FeedEvent> {
+public final class FeedMapper implements RowMapper<FeedEvent> {
 
     @Getter
     private static final FeedMapper instance = new FeedMapper();
@@ -17,13 +17,12 @@ public class FeedMapper implements RowMapper<FeedEvent> {
 
     @Override
     public FeedEvent mapRow(ResultSet rs, int rowNum) throws SQLException {
-        FeedEvent event = new FeedEvent();
-        event.setEventId(rs.getInt("event_id"));
-        event.setTimestamp(rs.getLong("timestamp"));
-        event.setUserId(rs.getInt("user_id"));
-        event.setEventType(FeedEvent.EventType.valueOf(rs.getString("event_type")));
-        event.setOperation(FeedEvent.Operation.valueOf(rs.getString("operation")));
-        event.setEntityId(rs.getInt("entity_id"));
-        return event;
+        return new FeedEvent(rs.getInt("event_id"),
+                rs.getInt("user_id"),
+                FeedEvent.EventType.valueOf(rs.getString("event_type")),
+                FeedEvent.Operation.valueOf(rs.getString("operation")),
+                rs.getInt("entity_id"),
+                rs.getTimestamp("created_at").toInstant()
+        );
     }
 }
