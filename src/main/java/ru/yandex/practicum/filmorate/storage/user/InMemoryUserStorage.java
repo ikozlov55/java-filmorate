@@ -3,18 +3,21 @@ package ru.yandex.practicum.filmorate.storage.user;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestStatus;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class InMemoryUserStorage implements UserStorage {
+@Deprecated
+public abstract class InMemoryUserStorage implements UserStorage {
     private static int nextEntityId = 1;
     private final Map<Integer, User> users = new HashMap<>();
     private final Map<Integer, Map<Integer, FriendRequestStatus>> usersFriends = new HashMap<>();
@@ -47,9 +50,8 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User delete(User user) {
-        checkUserExists(user.getId());
-        return users.remove(user.getId());
+    public void delete(int userId) {
+        checkUserExists(userId);
     }
 
     @Override
@@ -117,5 +119,10 @@ public class InMemoryUserStorage implements UserStorage {
             log.warn("Validation failed: {}", reason);
             throw new NotFoundException(reason);
         }
+    }
+
+    @Override
+    public Collection<Film> getRecommendations(int userId) {
+        return List.of();
     }
 }

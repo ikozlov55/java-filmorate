@@ -25,10 +25,8 @@ public class FilmBuilder {
         description = makeDescription();
         releaseDate = faker.timeAndDate().birthday(0, 40);
         duration = faker.random().nextInt(60, 120);
-        mpa = new Mpa();
-        mpa.setId(faker.random().nextInt(1, 5));
-        Genre genre = new Genre();
-        genre.setId(faker.random().nextInt(1, 6));
+        mpa = new Mpa(faker.random().nextInt(1, 5), null);
+        Genre genre = new Genre(faker.random().nextInt(1, 6), null);
         genres = Set.of(genre);
     }
 
@@ -58,17 +56,14 @@ public class FilmBuilder {
     }
 
     public FilmBuilder mpa(Integer mpaId) {
-        Mpa mpa = new Mpa();
-        mpa.setId(mpaId);
-        this.mpa = mpa;
+        this.mpa = new Mpa(mpaId, null);
         return this;
     }
 
     public FilmBuilder genres(int... genresIds) {
         Set<Genre> genres = new HashSet<>();
         for (int genreId : genresIds) {
-            Genre genre = new Genre();
-            genre.setId(genreId);
+            Genre genre = new Genre(genreId, null);
             genres.add(genre);
         }
         this.genres = genres;
@@ -76,15 +71,7 @@ public class FilmBuilder {
     }
 
     public Film build() {
-        Film film = new Film();
-        film.setId(id);
-        film.setName(name);
-        film.setDescription(description);
-        film.setReleaseDate(releaseDate);
-        film.setDuration(duration);
-        film.setMpa(mpa);
-        film.setGenres(genres);
-        return film;
+        return new Film(id, name, description, releaseDate, duration, 0, genres, mpa, Set.of());
     }
 
     private String makeDescription() {

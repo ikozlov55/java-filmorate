@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 
-public class GenreMapper implements RowMapper<Genre> {
+public final class GenreMapper implements RowMapper<Genre> {
     @Getter
     private static final GenreMapper instance = new GenreMapper();
 
@@ -17,9 +17,6 @@ public class GenreMapper implements RowMapper<Genre> {
 
     @Override
     public Genre mapRow(ResultSet rs, int rowNum) throws SQLException {
-        Genre genre = new Genre();
-        genre.setId(rs.getInt("id"));
-        genre.setName(rs.getString("name"));
-        return genre;
+        return new Genre(rs.getInt("id"), rs.getString("name"));
     }
 }

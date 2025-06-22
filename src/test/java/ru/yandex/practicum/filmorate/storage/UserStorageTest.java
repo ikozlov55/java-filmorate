@@ -10,7 +10,12 @@ import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.FilmorateJdbcConfig;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.director.DirectorDbStorage;
+import ru.yandex.practicum.filmorate.storage.feed.FeedDbStorage;
+import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.friend_requests.FriendRequestDbStorage;
+import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
+import ru.yandex.practicum.filmorate.storage.mpa.MpaDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 import ru.yandex.practicum.filmorate.testdata.UserBuilder;
 
@@ -21,7 +26,16 @@ import java.util.List;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({UserDbStorage.class, FriendRequestDbStorage.class, FilmorateJdbcConfig.class})
+@Import({
+        FilmDbStorage.class,
+        GenreDbStorage.class,
+        MpaDbStorage.class,
+        UserDbStorage.class,
+        FriendRequestDbStorage.class,
+        FilmorateJdbcConfig.class,
+        DirectorDbStorage.class,
+        FeedDbStorage.class,
+})
 public class UserStorageTest {
     private final UserDbStorage userStorage;
 
@@ -93,10 +107,11 @@ public class UserStorageTest {
     void userDelete() {
         User userInput = userStorage.create(new UserBuilder().build());
 
-        User user = userStorage.delete(userInput);
+        int userId = userInput.getId();
 
-        Assertions.assertEquals(userInput.getId(), user.getId());
-        Assertions.assertThrows(NotFoundException.class, () -> userStorage.getById(user.getId()));
+        userStorage.delete(userId);
+
+        Assertions.assertThrows(NotFoundException.class, () -> userStorage.getById(userId));
     }
 
     @Test

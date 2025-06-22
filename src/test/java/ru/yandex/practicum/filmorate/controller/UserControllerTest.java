@@ -125,10 +125,10 @@ public class UserControllerTest {
 
     @Test
     void idMustExistOnUserUpdate() throws Exception {
-        User user = new UserBuilder().id(99).build();
+        User user = new UserBuilder().id(999).build();
 
         filmorateApi.update(user).andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.reason").value("user with id 99 not found"));
+                .andExpect(jsonPath("$.reason").value("user with id 999 not found"));
     }
 
     @Test
